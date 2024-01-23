@@ -1,11 +1,13 @@
 # brick_world
 
 ## Project setup
+## 安装依赖
 ```
 npm install
 ```
 
 ### Compiles and hot-reloads for development
+### 启动前端
 ```
 npm run serve
 ```

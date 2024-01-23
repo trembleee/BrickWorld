@@ -1,10 +1,14 @@
 <template>
   <div id="app">
-    <nav>
-      <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link>
+    <nav v-if="!$route.meta.hideNav">
+      <router-link to="/">首页</router-link> |
+      <router-link to="/mining">挖矿</router-link> |
+      <router-link to="/marketPlace">市场</router-link> |
+      <router-link id="buildButton" to="/build">拼接</router-link>|
+      <router-link to="/portfolio">库存</router-link> |
+      <button>连接钱包</button>
     </nav>
-    <router-view/>
+    <router-view />
   </div>
 </template>
 
@@ -27,6 +31,12 @@ nav a {
 }
 
 nav a.router-link-exact-active {
-  color: #42b983;
+  color: #0dcbe9;
+}
+
+#buildButton {
+  border: 3px solid rgb(0, 0, 0);
+  display: inline-block;
+  text-decoration: none;
 }
 </style>

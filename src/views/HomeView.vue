@@ -1,18 +1,25 @@
 <template>
   <div class="home">
     <img alt="Vue logo" src="../assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js + TypeScript App"/>
+    <p>Is dev? {{ isDevelopment }}</p>
+    <HelloWorld msg="Welcome to Your Vue.js + TypeScript App" />
   </div>
 </template>
 
-<script lang="ts">
-import { Component, Vue } from 'vue-property-decorator';
+<script setup lang="ts">
+import { ref } from "vue"
 import HelloWorld from '@/components/HelloWorld.vue'; // @ is an alias to /src
 
-@Component({
-  components: {
-    HelloWorld,
-  },
-})
-export default class HomeView extends Vue {}
+function isDev() {
+  console.log(process.env.NODE_ENV);
+  if (process.env.NODE_ENV === 'development') {
+    return "development"
+  } else {
+    return "production"
+  }
+}
+
+const isDevelopment = ref(undefined as unknown as string);
+isDevelopment.value = isDev();
+
 </script>

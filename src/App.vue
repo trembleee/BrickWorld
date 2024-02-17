@@ -8,21 +8,9 @@
       <router-link to="/portfolio">库存</router-link> |
       <button>连接钱包</button>
     </nav>
-    <p>{{ isDev() }}</p>
     <router-view />
   </div>
 </template>
-
-<script>
-
-function isDev() {
-  if (process.env.NODE_ENV === 'development') {
-    return true;
-  } else {
-    return false;
-  }
-}
-</script>
 
 <style>
 #app {

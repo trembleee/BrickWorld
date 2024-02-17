@@ -5,7 +5,7 @@
  */
 import type * as three_wrapper from './three_wrapper';
 
-// import { logDebug } from './Messages';
+import { logDebug } from '@/scripts/utils/Message';
 import { setThreeLoadingComplete } from './three_loading';
 export { threeSetupComplete } from './three_loading';
 
@@ -60,7 +60,7 @@ async function setup() {
     GammaCorrectionShader = wrapper.GammaCorrectionShader;
     FXAAShader = wrapper.FXAAShader;
 
-    // logDebug('Successfully dynamically loaded three.js');
+    logDebug('Successfully dynamically loaded three.js');
 
     setThreeLoadingComplete(THREE);
 }

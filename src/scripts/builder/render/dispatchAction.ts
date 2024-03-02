@@ -1,9 +1,11 @@
-import { Brick } from '../brick/brick';
-import { BrickSet } from '../brick/brickSet';
+import { Brick, SerializedBrick } from '../brick/brick';
+import { BrickSet, SerializedBrickSet } from '../brick/brickSet';
 
 export const dispatchedActions: Array<{ action: string; payload: any }> = [];
 
 export type type_select_set_payload = { setId: string, bricks: Array<{ pos: [number, number, number], color: string, material: string, id: string | undefined }> };
+export type type_place_brick_payload = { setId: string; brick: SerializedBrick; pos: [number, number, number] };
+export type type_remove_brick_payload = { setId: string; brick: { id: string | undefined }; pos: [number, number, number] };
 
 const preprocessor: { [key: string]: (payload: any) => any } = {
     select_set: (payload: BrickSet) => {
@@ -15,18 +17,18 @@ const preprocessor: { [key: string]: (payload: any) => any } = {
         });
         return data;
     },
-    place_bricks: (payload: { pos: [number, number, number]; color?: string; material?: string }[]) => {
-        return payload;
-    },
+    // place_bricks: (payload: { pos: [number, number, number]; color?: string; material?: string }[]) => {
+    //     return payload;
+    // },
     // New versions
-    place_brick: (payload: { setId: number; brickData: any }) => {
+    place_brick: (payload: type_place_brick_payload) => {
         return payload;
     },
-    remove_brick: (payload: { setId: number; position: [number, number, number] }) => {
+    remove_brick: (payload: type_remove_brick_payload) => {
         return payload;
     },
 };
 
-export function dispatchAction(action: string, payload?: any) {
+export function dispatchBuilderAction(action: string, payload?: any) {
     dispatchedActions.push({ action, payload: preprocessor?.[action]?.(payload) ?? payload });
 }

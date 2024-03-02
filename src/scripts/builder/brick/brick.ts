@@ -1,5 +1,12 @@
 import { hexUuid } from "./Uuid"
 import { CONF } from '@/scripts/builder/conf/conf';
+
+export type SerializedBrick = {
+    material: string,
+    color: string,
+    id?: string
+};
+
 export class Brick {
     // Chain metadata
     material: string;
@@ -37,7 +44,7 @@ export class Brick {
 
     serialize() {
         // No need to serialize the set, we don't store briqs outside of sets.
-        const ret: any = {
+        const ret: SerializedBrick = {
             material: this.material,
             color: this.color.toLowerCase(),
         };
@@ -46,7 +53,7 @@ export class Brick {
         return ret;
     }
 
-    deserialize(data: any) {
+    deserialize(data: SerializedBrick) {
         // Set some sane default values to recover from weird states.
         // (we had cases where briqs had no colors).
         this.material = data.material || CONF.defaultMaterial;

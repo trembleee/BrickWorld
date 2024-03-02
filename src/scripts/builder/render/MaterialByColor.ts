@@ -63,7 +63,7 @@ export class MaterialByColor {
     getUV(index: number, uv: [number, number]): [number, number] {
         // We're using nearest filter, so make sure the UVs end up dead in the middle of the texture pixel.
         return [
-            ((index % this.size) + uv[0] * 0.2 + 0.4) / this.size,
+            ((index % this.size) + uv[0] * 0.2 + 0.4) / this.size, // 0.4 ~ 0.6 u coords on the texture in MaterialByColor
             (Math.floor(index / this.size) + uv[1] * 0.2 + 0.4) / this.size,
         ];
     }

@@ -11,7 +11,7 @@ type vector3 = {
 export class VoxelWorld {
     cellSize: number;
     materialByColor: MaterialByColor;
-    cellSliceSize: number;
+    cellSliceSize: number; // A cell contains multiple bricks, namely voxels, each brick has one unit width
     cells: { [cellId: string]: Uint16Array }; //Map<number, Uint8Array>;
     cellIdToMesh: { [cellId: string]: THREE.Mesh };
 
@@ -38,6 +38,7 @@ export class VoxelWorld {
     reset() {
         const cells = this.cells;
         this.cells = {};
+        // Geometry operations' entry
         for (const cell in cells)
             this.updateCellGeometry(...cell.split(',').map((x) => +x * this.cellSize) as [number, number, number]);
     }
@@ -100,6 +101,7 @@ export class VoxelWorld {
         return this.cells[this.computeCellId(x, y, z)];
     }
 
+    // client entry to add cells to the voxelWorld
     setVoxel(x: number, y: number, z: number, color: string, addCell = true) {
         let cell = this.getCellForVoxel(x, y, z);
         if (!cell) {
@@ -108,8 +110,11 @@ export class VoxelWorld {
 
             cell = this.addCellForVoxel(x, y, z);
         }
+        // compute offset within the Cell, since cellsSize used
         const voxelOffset = this.computeVoxelOffset(x, y, z);
+        // material by color
         const v = this.materialByColor.getIndex(color);
+        // unique in the cell Uint16Array
         cell[voxelOffset] = v;
 
         this.dirtyCells.add(this.computeCellId(x, y, z));
@@ -141,7 +146,7 @@ export class VoxelWorld {
         const uvs = [];
         const uv2s = [];
         const indices = [];
-        const startX = cellX * cellSize;
+        const startX = cellX * cellSize; // turn into world pos, origin
         const startY = cellY * cellSize;
         const startZ = cellZ * cellSize;
 
@@ -151,6 +156,7 @@ export class VoxelWorld {
                 const voxelZ = startZ + z;
                 for (let x = 0; x < cellSize; ++x) {
                     const voxelX = startX + x;
+                    // in fact, we get the color of the voxel
                     const voxel = this.getVoxel(voxelX, voxelY, voxelZ);
                     if (voxel) {
                         // voxel 0 is sky (empty) so for UVs we start at 0
@@ -185,14 +191,15 @@ export class VoxelWorld {
     }
 
     updateCellGeometry(x: number, y: number, z: number) {
+        // [x, y, z] are world space coords, decomposed from CellId
         const cellX = Math.floor(x / this.cellSize);
         const cellY = Math.floor(y / this.cellSize);
         const cellZ = Math.floor(z / this.cellSize);
-        const cellId = this.computeCellId(x, y, z);
+        const cellId = this.computeCellId(x, y, z); // get CellId from coords again
         let mesh = this.cellIdToMesh[cellId];
         const geometry = mesh ? mesh.geometry : new THREE.BufferGeometry();
 
-        const { positions, normals, uvs, uv2s, indices } = this.generateGeometryDataForCell(cellX, cellY, cellZ);
+        const { positions, normals, uvs, uv2s, indices } = this.generateGeometryDataForCell(cellX, cellY, cellZ); // the start point of a cell, namely origin of a cell
         const positionNumComponents = 3;
         geometry.setAttribute(
             'position',
@@ -212,6 +219,7 @@ export class VoxelWorld {
             this.cellIdToMesh[cellId] = mesh;
             mesh.castShadow = true;
             mesh.receiveShadow = true;
+            // The geometry has a inner offset in the cell, with this can it get to the real pos.
             mesh.position.set(cellX * this.cellSize, cellY * this.cellSize, cellZ * this.cellSize);
             this.object.add(mesh);
         }
@@ -243,7 +251,7 @@ export class VoxelWorld {
 
     // from
     // http://www.cse.chalmers.se/edu/year/2010/course/TDA361/grid.pdf
-    intersectRay(start: vector3, end: vector3) {
+    intersectRay(start: vector3, end: vector3): null | { position: [number, number, number], normal: [number, number, number], voxel: number } /*voxel refers to a color index here*/ {
         let dx = end.x - start.x;
         let dy = end.y - start.y;
         let dz = end.z - start.z;

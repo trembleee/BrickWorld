@@ -1,7 +1,18 @@
-import { Brick } from "./brick";
+import { Brick, SerializedBrick } from "./brick";
 import { markRaw } from 'vue';
+import { dispatchBuilderAction } from '@/scripts/builder/render/dispatchAction'
+import { logDebug } from "@/scripts/utils/Message";
+import { type_place_brick_payload, type_remove_brick_payload } from "@/scripts/builder/render/dispatchAction";
 
 // import { dispatchBuilderAction } from '@/builder/graphics/Dispatch';
+export type SerializedBrickSet = {
+    id: string,
+    name: string,
+    description: string,
+    regionSize: number,
+    version?: number,
+    bricks: { pos: [number, number, number], data: SerializedBrick }[]
+}
 
 const REGION_SIZE = 100000;
 export class BrickSet {
@@ -159,14 +170,21 @@ export class BrickSet {
     // }
 
     placeBrick(x: number, y: number, z: number, brick?: Brick): boolean {
-        if (brick)
+        if (brick) {
+            // logDebug("BrickSet - placing a brick.");
             return this.doPlaceBrick(x, y, z, brick);
-        else
+        }
+        else {
+            // logDebug("BrickSet - removing a brick.");
             return this.doRemoveBrick(x, y, z);
+        }
+
     }
 
     doPlaceBrick(x: number, y: number, z: number, brick: Brick): boolean {
         const [regionId, cellId] = this.computeIDs(x, y, z);
+        // logDebug("x: " + x + " y: " + y + " z: " + z);
+        // logDebug("regionId: " + regionId + " cellId " + cellId);
         if (!this.bricks.has(regionId))
             this.bricks.set(regionId, new Map());
         else if (this.bricks.get(regionId)?.get(cellId))
@@ -182,7 +200,8 @@ export class BrickSet {
         this.bricks_ += 1;
         this.usedByMaterial_ += 1;
 
-        // dispatchBuilderAction('place_brick', { set: this.id, brick: brick.serialize(), position: [x, y, z] });
+        const payload: type_place_brick_payload = { setId: this.id, brick: brick.serialize(), pos: [x, y, z] };
+        dispatchBuilderAction('place_brick', payload);
 
         return true;
     }
@@ -204,7 +223,8 @@ export class BrickSet {
         this.bricks_ += 1;
         this.usedByMaterial_ += 1;
 
-        // dispatchBuilderAction('remove_brick', { set: this.id, position: [x, y, z], brick: { id: brick.id } });
+        const payload: type_remove_brick_payload = { setId: this.id, pos: [x, y, z], brick: { id: brick.id } };
+        dispatchBuilderAction('remove_brick', payload);
 
         return true;
     }

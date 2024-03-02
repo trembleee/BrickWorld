@@ -16,11 +16,13 @@ import {
 
 import { CONF } from './conf/conf';
 
-import { bounds, getSetObject, handleActions } from './render/runtime_rendering';
+import { bounds, getSetObject, handleActions, GroundGrid } from './render/runtime_rendering';
+import { BrickGrid } from './brick/brickGrid';
 import { HemisphereLight, Scene } from 'three';
 import { watchEffect } from 'vue';
-import { dispatchAction, dispatchedActions } from './render/dispatchAction';
+import { dispatchBuilderAction, dispatchedActions } from './render/dispatchAction';
 import { logDebug } from '../utils/Message';
+import { Brick } from './brick/brick';
 
 // The camera of the scene
 export let camera: THREE.Camera;
@@ -30,11 +32,13 @@ export const orbitControls = {
     controls: undefined as unknown as InstanceType<typeof OrbitControls>,
 };
 
-let scene: THREE.Scene;
+export let scene: THREE.Scene;
 
 let renderer: THREE.Renderer;
 
 let composer: InstanceType<typeof EffectComposer>;
+
+let grid: BrickGrid;
 
 function getCanvasSize() {
     if (!bounds?.min) return 5;
@@ -76,9 +80,27 @@ function setupScene() {
 
     addDefaultLights(scene, 1 * getCanvasSize() / 2, 2 * getCanvasSize() / 2, 3 * getCanvasSize() / 2);
 
-    scene.background = new THREE.Color("#FAFAFA").convertSRGBToLinear();
+    scene.background = new THREE.Color("#FAFAFA");
+    // scene.background = null;
 
-    scene.add(getSetObject());
+    // if (!GroundGrid.grid) {
+    //     GroundGrid.generate();
+    //     const grid = GroundGrid.grid as THREE.Mesh;
+    //     scene.add(grid);
+    //     logDebug("Grid added to the scene.");
+    // }
+
+
+    if (!GroundGrid.grid) {
+        GroundGrid.generate();
+    }
+
+    // the adding must be setup outside the if block since every time the scene is updated, the scene would be cleared.
+    scene.add(GroundGrid.grid);
+    logDebug("Grid added to the scene.");
+
+    const brickObjects = getSetObject();
+    scene.add(brickObjects);
 
     return scene;
 }
@@ -200,7 +222,7 @@ export async function setupCanvas(canvas: HTMLCanvasElement) {
     orbitControls.controls.dampingFactor = 0.1;
     resetCamera();
 
-    scene = setupScene();
+    setupScene();
 
     // create renderer and composer
     watchEffect(() => {

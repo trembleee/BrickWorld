@@ -1,6 +1,9 @@
 import { THREE } from '@/scripts/builder/render/three';
 
-import type { MaterialByColor } from '@/scripts/builder/render/MaterialByColor';
+import type { MaterialByColor } from '@/scripts/builder/materials/MaterialByColor';
+import { getRenderMaterial } from '../materials/MaterialMap';
+import { BrickType, getBrickMaterials } from './BrickType';
+import { logDebug } from '@/scripts/utils/Message';
 
 type vector3 = {
     x: number,
@@ -12,7 +15,8 @@ export class VoxelWorld {
     cellSize: number;
     materialByColor: MaterialByColor;
     cellSliceSize: number; // A cell contains multiple bricks, namely voxels, each brick has one unit width
-    cells: { [cellId: string]: Uint16Array }; //Map<number, Uint8Array>;
+    // cells: { [cellId: string]: Uint16Array }; // Map<number, Uint8Array>;
+    cells: { [cellId: string]: Array<[string, number]> }; // Map<cellId, [brickType, colorIdx]>;
     cellIdToMesh: { [cellId: string]: THREE.Mesh };
 
     dirtyCells: Set<string>;
@@ -21,7 +25,7 @@ export class VoxelWorld {
 
     static faces: Array<any>;
 
-    constructor(options: { cellSize: number; material: MaterialByColor }) {
+    constructor(options: { cellSize: number }) {
         this.cellSize = options.cellSize;
         const { cellSize } = this;
         this.cellSliceSize = cellSize * cellSize;
@@ -32,7 +36,7 @@ export class VoxelWorld {
 
         this.object = new THREE.Object3D();
 
-        this.materialByColor = options.material;
+        this.materialByColor = getRenderMaterial('pure') as MaterialByColor;
     }
 
     reset() {
@@ -91,7 +95,7 @@ export class VoxelWorld {
         let cell = this.cells[cellId];
         if (!cell) {
             const { cellSize } = this;
-            cell = new Uint16Array(cellSize * cellSize * cellSize);
+            cell = new Array<[string, number]>(cellSize * cellSize * cellSize);
             this.cells[cellId] = cell;
         }
         return cell;
@@ -102,7 +106,7 @@ export class VoxelWorld {
     }
 
     // client entry to add cells to the voxelWorld
-    setVoxel(x: number, y: number, z: number, color: string, addCell = true) {
+    setVoxel(x: number, y: number, z: number, color: string, brickType: string = 'pure', addCell = true) {
         let cell = this.getCellForVoxel(x, y, z);
         if (!cell) {
             if (!addCell)
@@ -113,9 +117,10 @@ export class VoxelWorld {
         // compute offset within the Cell, since cellsSize used
         const voxelOffset = this.computeVoxelOffset(x, y, z);
         // material by color
-        const v = this.materialByColor.getIndex(color);
+        // TODO: map material
+        const colorIndex = this.materialByColor.getIndex(color);
         // unique in the cell Uint16Array
-        cell[voxelOffset] = v;
+        cell[voxelOffset] = [brickType, colorIndex];
 
         this.dirtyCells.add(this.computeCellId(x, y, z));
         // We might need to update neighboring regions because the meshes are optimised (no inside faces).
@@ -146,6 +151,7 @@ export class VoxelWorld {
         const uvs = [];
         const uv2s = [];
         const indices = [];
+        const cellMaterialaArray = [];
         const startX = cellX * cellSize; // turn into world pos, origin
         const startY = cellY * cellSize;
         const startZ = cellZ * cellSize;
@@ -160,19 +166,35 @@ export class VoxelWorld {
                     const voxel = this.getVoxel(voxelX, voxelY, voxelZ);
                     if (voxel) {
                         // voxel 0 is sky (empty) so for UVs we start at 0
-                        const uvVoxel = voxel - 1;
+                        const uvVoxel = voxel[1] - 1;
+                        const brickType = voxel[0];
+                        logDebug("BrickType:", brickType);
+                        const voxelMaterials = getBrickMaterials(brickType);
                         // There is a voxel here but do we need faces for it?
-                        for (const { dir, corners, uvRow } of VoxelWorld.faces) {
+                        for (const i in VoxelWorld.faces) {
+                            const { dir, corners, uvRow } = VoxelWorld.faces[i];
                             const neighbor = this.getVoxel(voxelX + dir[0], voxelY + dir[1], voxelZ + dir[2]);
+                            // totally 24 for a cube, indexed in a face, the vertex between face/edge is repeated
                             if (!neighbor || (this.materialByColor.material.transparent && neighbor !== voxel)) {
                                 // this voxel has no neighbor in this direction so we need a face.
                                 const ndx = positions.length / 3;
                                 for (const { pos, uv } of corners) {
+                                    // offset in cell
                                     positions.push(pos[0] + x, pos[1] + y, pos[2] + z);
                                     normals.push(...dir);
-                                    uvs.push(...this.materialByColor.getUV(uvVoxel, uv));
+                                    if (brickType === 'pure') {
+                                        uvs.push(...this.materialByColor.getUV(uvVoxel, uv));
+                                    }
+                                    else {
+                                        uvs.push(...uv);
+                                    }
                                     uv2s.push(...uv);
                                 }
+                                // for (const mat of voxelMaterials) {
+                                //     cellMaterialaArray.push(mat.material);
+                                // }
+                                // every 6 indices with a material
+                                cellMaterialaArray.push(voxelMaterials[i].material);
                                 indices.push(ndx, ndx + 1, ndx + 2, ndx + 2, ndx + 1, ndx + 3);
                             }
                         }
@@ -187,6 +209,7 @@ export class VoxelWorld {
             uvs,
             uv2s,
             indices,
+            materials: cellMaterialaArray
         };
     }
 
@@ -199,27 +222,37 @@ export class VoxelWorld {
         let mesh = this.cellIdToMesh[cellId];
         const geometry = mesh ? mesh.geometry : new THREE.BufferGeometry();
 
-        const { positions, normals, uvs, uv2s, indices } = this.generateGeometryDataForCell(cellX, cellY, cellZ); // the start point of a cell, namely origin of a cell
+        const { positions, normals, uvs, uv2s, indices, materials } = this.generateGeometryDataForCell(cellX, cellY, cellZ); // the start point of a cell, namely origin of a cell
+
         const positionNumComponents = 3;
         geometry.setAttribute(
             'position',
             new THREE.BufferAttribute(new Float32Array(positions), positionNumComponents),
         );
+
         const normalNumComponents = 3;
         geometry.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(normals), normalNumComponents));
+
         const uvNumComponents = 2;
+        // this uv is used to lookup pure color, this item is fixed for specific brick
         geometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(uvs), uvNumComponents));
         geometry.setAttribute('uv2', new THREE.BufferAttribute(new Float32Array(uv2s), uvNumComponents));
         geometry.setIndex(indices);
         geometry.computeBoundingSphere();
 
+        const matNumComponentsForAFace = 6;
+        for (let i = 0; i < materials.length; i++) {
+            geometry.addGroup(i * matNumComponentsForAFace, matNumComponentsForAFace, i);
+        }
+
         if (!mesh) {
-            mesh = new THREE.Mesh(geometry, this.materialByColor.material);
+            mesh = new THREE.Mesh(geometry, materials);
             mesh.name = cellId;
             this.cellIdToMesh[cellId] = mesh;
             mesh.castShadow = true;
             mesh.receiveShadow = true;
             // The geometry has a inner offset in the cell, with this can it get to the real pos.
+            // offset out cell
             mesh.position.set(cellX * this.cellSize, cellY * this.cellSize, cellZ * this.cellSize);
             this.object.add(mesh);
         }
@@ -251,7 +284,7 @@ export class VoxelWorld {
 
     // from
     // http://www.cse.chalmers.se/edu/year/2010/course/TDA361/grid.pdf
-    intersectRay(start: vector3, end: vector3): null | { position: [number, number, number], normal: [number, number, number], voxel: number } /*voxel refers to a color index here*/ {
+    intersectRay(start: vector3, end: vector3): null | { position: [number, number, number], normal: [number, number, number], voxel?: number } /*voxel refers to a color index here*/ {
         let dx = end.x - start.x;
         let dy = end.y - start.y;
         let dz = end.z - start.z;
@@ -297,7 +330,7 @@ export class VoxelWorld {
                         steppedIndex === 1 ? -stepY : 0,
                         steppedIndex === 2 ? -stepZ : 0,
                     ],
-                    voxel,
+                    // voxel,
                 };
 
 
@@ -334,6 +367,50 @@ export class VoxelWorld {
 
 VoxelWorld.faces = [
     {
+        // front
+        uvRow: 0,
+        dir: [0, 0, 1],
+        corners: [
+            { pos: [0, 0, 1], uv: [0, 0] },
+            { pos: [1, 0, 1], uv: [1, 0] },
+            { pos: [0, 1, 1], uv: [0, 1] },
+            { pos: [1, 1, 1], uv: [1, 1] },
+        ],
+    },
+    {
+        // back
+        uvRow: 0,
+        dir: [0, 0, -1],
+        corners: [
+            { pos: [1, 0, 0], uv: [0, 0] },
+            { pos: [0, 0, 0], uv: [1, 0] },
+            { pos: [1, 1, 0], uv: [0, 1] },
+            { pos: [0, 1, 0], uv: [1, 1] },
+        ],
+    },
+    {
+        // top
+        uvRow: 2,
+        dir: [0, 1, 0],
+        corners: [
+            { pos: [0, 1, 1], uv: [1, 1] },
+            { pos: [1, 1, 1], uv: [0, 1] },
+            { pos: [0, 1, 0], uv: [1, 0] },
+            { pos: [1, 1, 0], uv: [0, 0] },
+        ],
+    },
+    {
+        // bottom
+        uvRow: 1,
+        dir: [0, -1, 0],
+        corners: [
+            { pos: [1, 0, 1], uv: [1, 0] },
+            { pos: [0, 0, 1], uv: [0, 0] },
+            { pos: [1, 0, 0], uv: [1, 1] },
+            { pos: [0, 0, 0], uv: [0, 1] },
+        ],
+    },
+    {
         // left
         uvRow: 0,
         dir: [-1, 0, 0],
@@ -353,50 +430,6 @@ VoxelWorld.faces = [
             { pos: [1, 0, 1], uv: [0, 0] },
             { pos: [1, 1, 0], uv: [1, 1] },
             { pos: [1, 0, 0], uv: [1, 0] },
-        ],
-    },
-    {
-        // bottom
-        uvRow: 1,
-        dir: [0, -1, 0],
-        corners: [
-            { pos: [1, 0, 1], uv: [1, 0] },
-            { pos: [0, 0, 1], uv: [0, 0] },
-            { pos: [1, 0, 0], uv: [1, 1] },
-            { pos: [0, 0, 0], uv: [0, 1] },
-        ],
-    },
-    {
-        // top
-        uvRow: 2,
-        dir: [0, 1, 0],
-        corners: [
-            { pos: [0, 1, 1], uv: [1, 1] },
-            { pos: [1, 1, 1], uv: [0, 1] },
-            { pos: [0, 1, 0], uv: [1, 0] },
-            { pos: [1, 1, 0], uv: [0, 0] },
-        ],
-    },
-    {
-        // back
-        uvRow: 0,
-        dir: [0, 0, -1],
-        corners: [
-            { pos: [1, 0, 0], uv: [0, 0] },
-            { pos: [0, 0, 0], uv: [1, 0] },
-            { pos: [1, 1, 0], uv: [0, 1] },
-            { pos: [0, 1, 0], uv: [1, 1] },
-        ],
-    },
-    {
-        // front
-        uvRow: 0,
-        dir: [0, 0, 1],
-        corners: [
-            { pos: [0, 0, 1], uv: [0, 0] },
-            { pos: [1, 0, 1], uv: [1, 0] },
-            { pos: [0, 1, 1], uv: [0, 1] },
-            { pos: [1, 1, 1], uv: [1, 1] },
         ],
     },
 ];

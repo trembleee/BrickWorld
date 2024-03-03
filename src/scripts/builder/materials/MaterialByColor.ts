@@ -1,22 +1,24 @@
 import lightMapTex from '@/assets/lightmap.png';
 import { THREE } from '@/scripts/builder/render/three';
-
+import { Material, MaterialInitStruct } from "@/scripts/builder/materials/Material";
+import { printStackTrace } from '@/scripts/utils/Message';
 
 // import builderSettings from './Settings';
 
 import { watchEffect } from 'vue';
 
-export class MaterialByColor {
+export class MaterialByColor extends Material {
     index: number;
     colorIndex: { [key: string]: number };
     indexMaterial: { [key: number]: THREE.Material };
 
-    material: THREE.MeshStandardMaterial;
     lightMapTexture: THREE.Texture;
 
     size = 256;
 
-    constructor() {
+    constructor(payload: MaterialInitStruct) {
+        super(payload);
+
         this.index = 1;
         this.colorIndex = {
             '': 0,
@@ -29,12 +31,12 @@ export class MaterialByColor {
         this.lightMapTexture.magFilter = THREE.NearestFilter;
         this.lightMapTexture.channel = 1; // uv2
 
-        this.material = new THREE.MeshStandardMaterial({
-            alphaTest: 0.1,
-            transparent: false,
-            metalness: 0.0,
-            roughness: 0.4,
-        });
+        // this.material = new THREE.MeshStandardMaterial({
+        //     alphaTest: 0.1,
+        //     transparent: false,
+        //     metalness: 0.0,
+        //     roughness: 0.4,
+        // });
         this.updateTexture();
 
         // watchEffect(() => {

@@ -12,7 +12,7 @@ export const inputStore = reactive({
     // palettesMgr,
     // selectionMgr: new SelectionManager(),
     // currentColor: color,
-    currentColor: '#ffffff',
+    currentColor: '#ff0000',
     // currentMaterial: material || CONF.defaultMaterial,
     currentMaterial: CONF.defaultMaterial,
 

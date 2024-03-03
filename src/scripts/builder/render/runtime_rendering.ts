@@ -5,12 +5,12 @@ import { THREE } from "./three";
 
 import { BrickGrid } from "../brick/brickGrid";
 
-import { MaterialByColor } from "./MaterialByColor";
+import { MaterialByColor } from "../materials/MaterialByColor";
 
 import { type_select_set_payload, type_place_brick_payload, type_remove_brick_payload } from "./dispatchAction";
 
 import { camera } from "../Builder";
-import { logDebug } from "@/scripts/utils/Message";
+import { logDebug, printStackTrace } from "@/scripts/utils/Message";
 import { Vector2 } from "three";
 import { SerializedBrick } from '../brick/brick';
 import { inputStore } from '../inputs/InputStore';
@@ -25,13 +25,18 @@ const { currentSet } = builderStore;
 
 let setObject: THREE.Object3D;
 
-let voxels: { [material: string]: VoxelWorld } = {};
+// let voxels: { [material: string]: VoxelWorld } = {};
+let voxelWorld: VoxelWorld;
 // const nfts: { [key: string]: briqNFT } = {};
 
 function reset() {
-    for (const mat in voxels)
-        voxels[mat].reset();
-    voxels = {};
+    // for (const mat in voxels)
+    //     voxels[mat].reset();
+    // voxels = {};
+    if (voxelWorld) {
+        voxelWorld.reset();
+    }
+    voxelWorld = undefined as unknown as VoxelWorld;
     // for (const id in nfts)
     //     nfts[id].setPos();
     setObject.clear();
@@ -39,22 +44,34 @@ function reset() {
     bounds.max = undefined; //new THREE.Vector3(0, 0, 0);
 }
 
-function getVoxelWorld(material: string) {
-    if (!voxels[material]) {
-        // voxels[material] = new VoxelWorld({ cellSize: 10, material: getRenderMaterial(material) });
-        voxels[material] = new VoxelWorld({ cellSize: 10, material: new MaterialByColor() });
-        voxels[material].object.layers.set(RAYCASTING_LAYER);
-        setObject.add(voxels[material].object);
+function getVoxelWorld() {
+    // if (!voxels[material]) {
+    //     // voxels[material] = new VoxelWorld({ cellSize: 10, material: getRenderMaterial(material) });
+    //     voxels[material] = new VoxelWorld({ cellSize: 10 });
+    //     voxels[material].object.layers.set(RAYCASTING_LAYER);
+    //     setObject.add(voxels[material].object);
+    // }
+    if (!voxelWorld) {
+        // init for voxelWorld
+        voxelWorld = new VoxelWorld({ cellSize: 10 });
+        voxelWorld.object.layers.set(RAYCASTING_LAYER);
+        setObject.add(voxelWorld.object);
     }
-    return voxels[material];
+    return voxelWorld;
 }
 
 export function getSetObject() {
     if (setObject)
         return setObject;
     setObject = new THREE.Object3D();
-    for (const material in voxels)
-        setObject.add(voxels[material].object);
+    // for voxels, no item will directly skip
+    // for (const material in voxels)
+    //     setObject.add(voxels[material].object);
+    if (!voxelWorld) {
+        logDebug("getSetObject - VoxelWorld not init yet, do nothing.")
+    } else {
+        setObject.add(voxelWorld.object);
+    }
     return setObject;
 }
 
@@ -94,7 +111,7 @@ export function handleActions(dispatchedActions: Array<{ action: string; payload
                     // first update brickData for abstract recording
                     // second dispatch actions to alter data structure in rendering
                     // finally update the dirty cells to update the geometry
-                    getVoxelWorld(data.material).setVoxel(...data.pos, data?.color ?? '');
+                    getVoxelWorld().setVoxel(...data.pos, data?.color ?? '', data.material);
                 }
             }
             // this current set is a local variable
@@ -109,7 +126,7 @@ export function handleActions(dispatchedActions: Array<{ action: string; payload
             if (data.setId !== currentSetId) {
                 continue;
             }
-            // logDebug("Action handler - placing.")
+            logDebug("Action handler - placing.")
             // if(item.action === 'remove_brick')
             // TODO:
             if (item.action === 'remove_brick') {
@@ -124,12 +141,13 @@ export function handleActions(dispatchedActions: Array<{ action: string; payload
             }
             else {
                 if (data.brick.material) {
-                    getVoxelWorld(data.brick.material).setVoxel(...data.pos, data.brick?.color || '');
+                    getVoxelWorld().setVoxel(...data.pos, data.brick?.color || '', data.brick.material);
                     // logDebug("Action handler - New brick added.")
                 }
                 else {
-                    for (const mat in voxels)
-                        voxels[mat].setVoxel(...data.pos, '');
+                    // for (const mat in voxels)
+                    //     voxels[mat].setVoxel(...data.pos, '');
+                    voxelWorld.setVoxel(...data.pos, '');
                 }
             }
 
@@ -141,9 +159,10 @@ export function handleActions(dispatchedActions: Array<{ action: string; payload
         // clear the action array
         dispatchedActions.length = 0;
         // update altered voxelworld
-        for (const mat in voxels) {
-            voxels[mat].updateDirty();
-        }
+        // for (const mat in voxels) {
+        //     voxels[mat].updateDirty();
+        // }
+        voxelWorld.updateDirty();
 
         // update grid
         if (bounds.min) {
@@ -188,17 +207,33 @@ export function getIntersectionPos(xScreen: number, yScreen: number): undefined 
         };
     let closest = undefined;
     let bestD = 0;
-    for (const mat in voxels) {
-        const int = voxels[mat].intersectRay(start, end);
-        if (!int)
-            continue;
+    // for (const mat in voxels) {
+    //     const int = voxels[mat].intersectRay(start, end);
+    //     if (!int)
+    //         continue;
+    //     // TODO: improve
+    //     const d = rc.ray.origin.distanceToSquared(new THREE.Vector3(...int.position));
+    //     if (!closest || d <= bestD) {
+    //         bestD = d;
+    //         closest = int;
+    //     }
+    // }
+
+    // intersection is checked only when voxelWorld is setup
+    if (voxelWorld) {
+        const int = voxelWorld.intersectRay(start, end);
+        // if (!int)
+        //     continue;
         // TODO: improve
-        const d = rc.ray.origin.distanceToSquared(new THREE.Vector3(...int.position));
-        if (!closest || d <= bestD) {
-            bestD = d;
-            closest = int;
+        if (int) {
+            const d = rc.ray.origin.distanceToSquared(new THREE.Vector3(...int.position));
+            if (!closest || d <= bestD) {
+                bestD = d;
+                closest = int;
+            }
         }
     }
+
     if (closest)
         return closest;
     closest = rc.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), new THREE.Vector3());

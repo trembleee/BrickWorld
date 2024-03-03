@@ -8,3 +8,8 @@ export function logDebug(...args: any[]) {
     if (!forceDebug && !DEV) return;
     console.log(...args);
 }
+
+export function printStackTrace() {
+    const error = new Error('Stack Trace');
+    console.trace(error);
+}

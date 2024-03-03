@@ -54,7 +54,7 @@ function resetCamera() {
 
 function addDefaultLights(scene: THREE.Scene, x: number, y: number, z: number) {
     // directional light
-    const lightSpot = new THREE.DirectionalLight(new THREE.Color(0x888888).convertSRGBToLinear(), 2.0);
+    const lightSpot = new THREE.DirectionalLight(new THREE.Color(0xffffff), 2.0);
     lightSpot.position.set(x, y, z);
     lightSpot.castShadow = true;
     lightSpot.shadow.bias = getCanvasSize() ? -0.01 : -0.001;
@@ -70,7 +70,7 @@ function addDefaultLights(scene: THREE.Scene, x: number, y: number, z: number) {
     scene.add(lightSpot);
 
     // ambient light
-    const ambientLight = new THREE.AmbientLight(new THREE.Color(0x888888).convertSRGBToLinear(), 2.0);
+    const ambientLight = new THREE.AmbientLight(new THREE.Color(0x888888), 2.0);
     scene.add(ambientLight);
 }
 

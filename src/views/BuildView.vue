@@ -5,6 +5,7 @@
             <button @click="switchToState('inspect')">Inspect</button>
             <button @click="switchToState('place')">Place</button>
             <button @click="switchToState('erase')">Erase</button>
+            <ColorPicker class="color-picker"></ColorPicker>
         </div>
         <WebGLCanvas class="canvas" />
     </div>
@@ -19,8 +20,9 @@ import { logDebug } from "@/scripts/utils/Message"
 import { dispatchBuilderAction } from '@/scripts/builder/render/dispatchAction';
 import { setupInputMap } from '@/scripts/builder/inputs/inputStates/SetupInputMap';
 import { inputInitComplete } from '@/scripts/builder/inputs/InputLoading';
-
+import ColorPicker from "@/components/builder/ColorPicker.vue"
 import WebGLCanvas from '@/components/builder/WebGLCanvas.vue';
+// import { getSetObject } from '@/scripts/builder/render/runtime_rendering';
 
 const { currentSet, selectSet, resetBuilderState } = builderStore;
 const { switchToState } = inputStore;
@@ -46,6 +48,7 @@ onBeforeMount(async () => {
     await initializeStartSet(); // currentSet is setup
     // It is then when currentSet local viarable in file runtime_rendering have a chance to be accessed
     // So maybe the currentSet local viarable can be replaced by currentSet setData?
+
     dispatchBuilderAction('select_set', currentSet.value); // generate the voxelWorld with its brick 
 });
 </script>
@@ -53,6 +56,12 @@ onBeforeMount(async () => {
 <style>
 .overlay {
     z-index: 1;
+
+    .color-picker {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+    }
 }
 
 .canvas {

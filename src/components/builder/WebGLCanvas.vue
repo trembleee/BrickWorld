@@ -22,6 +22,8 @@ onMounted(async () => {
     // setup Canvas
     await setupCanvas(canvas.value);
     // setup input Finite State Machine
+
+    // input setup complete here
     builderInputFsm.initialize(
         canvas.value, orbitControls.controls, inputStore
     );

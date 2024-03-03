@@ -5,14 +5,14 @@
             <button @click="switchToState('inspect')">Inspect</button>
             <button @click="switchToState('place')">Place</button>
             <button @click="switchToState('erase')">Erase</button>
-            <ColorPicker class="color-picker"></ColorPicker>
+            <PlacePane v-if="placePaneVisible" class="color-picker"></PlacePane>
         </div>
         <WebGLCanvas class="canvas" />
     </div>
 </template>
 
 <script setup lang="ts">
-import { onBeforeMount } from 'vue';
+import { onBeforeMount, computed } from 'vue';
 import { builderStore } from '@/scripts/builder/builderStore';
 import { inputStore } from '@/scripts/builder/inputs/InputStore'
 import { generateDefaultSet } from "@/scripts/builder/brick/brickSetManager"
@@ -20,12 +20,20 @@ import { logDebug } from "@/scripts/utils/Message"
 import { dispatchBuilderAction } from '@/scripts/builder/render/dispatchAction';
 import { setupInputMap } from '@/scripts/builder/inputs/inputStates/SetupInputMap';
 import { inputInitComplete } from '@/scripts/builder/inputs/InputLoading';
-import ColorPicker from "@/components/builder/ColorPicker.vue"
+import PlacePane from "@/components/builder/PlacePane.vue"
 import WebGLCanvas from '@/components/builder/WebGLCanvas.vue';
 // import { getSetObject } from '@/scripts/builder/render/runtime_rendering';
 
 const { currentSet, selectSet, resetBuilderState } = builderStore;
+
+// here currentInput is just a normal const viarable, not a reactive, since it is a copy of the inputStore.currenInput
+// const { switchToState, currentInput } = inputStore;
 const { switchToState } = inputStore;
+
+
+const placePaneVisible = computed(() => {
+    return inputStore.currentInput === "place" ? true : false;
+});
 
 async function initializeStartSet() {
     let set = undefined;

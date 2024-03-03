@@ -96,7 +96,7 @@ export class PlaceOrRemoveBriqs extends BuilderAction {
             const briq = briqData.color
                 ? new Brick(briqData.material, briqData.color).setNFTid(briqData.id)
                 : undefined;
-            set.placeBrick(...briqData.pos, briq);
+            set.placeOrRemoveBrick(...briqData.pos, briq);
             // logDebug("Brick added.");
         }
         // inputStore.selectionMgr.clear();

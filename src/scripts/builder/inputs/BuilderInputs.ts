@@ -26,6 +26,7 @@ export class BuilderInputFSM {
         this.orbitControls = oc;
         this.store = store;
         logDebug('FSM - initialised');
+        // input setup complete
         setInputInitComplete();
         if (this._preinitState)
             this.switchTo(...this._preinitState);

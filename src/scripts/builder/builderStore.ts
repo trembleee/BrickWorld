@@ -2,6 +2,9 @@ import { builderInputFsm } from './inputs/BuilderInputs';
 import { shallowRef } from "vue";
 import { BrickSet } from "./brick/brickSet";
 import { logDebug } from "@/scripts/utils/Message";
+import { inputStore } from '@/scripts/builder/inputs/InputStore'
+
+const { switchToState } = inputStore;
 
 
 export const builderStore = (() => {
@@ -11,7 +14,8 @@ export const builderStore = (() => {
     const selectSet = async (set: BrickSet) => {
         logDebug('BUILDER SWICTHING TO SET ', set.id);
         // set input state to inspect when selecting set
-        builderInputFsm.switchTo('inspect')
+        // builderInputFsm.switchTo('inspect')
+        switchToState('inspect');
         _currentSet.value = set;
     }
 

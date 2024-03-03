@@ -1,6 +1,7 @@
 import { reactive } from 'vue';
 import { builderInputFsm } from './BuilderInputs';
 import { CONF } from '@/scripts/builder/conf/conf';
+import { logDebug } from '@/scripts/utils/Message';
 
 // const { material, color } = palettesMgr.getCurrent().getFirstChoice();
 
@@ -27,5 +28,7 @@ export const inputStore = reactive({
     grabFocus: false,
     switchToState: (state: string, data?: object) => {
         builderInputFsm.switchTo(state, data);
+        inputStore.currentInput = state;
+        logDebug("InputStore - currentInput Changed to - ", inputStore.currentInput);
     }
 });

@@ -90,7 +90,7 @@ export class BrickSet {
             //     cell.deserialize(brick.data);
             // else
             //     cell.deserializeV0(brick.data);
-            this.placeBrick(brick.pos[0], brick.pos[1], brick.pos[2], cell);
+            this.placeOrRemoveBrick(brick.pos[0], brick.pos[1], brick.pos[2], cell);
         }
         return this;
     }
@@ -169,16 +169,15 @@ export class BrickSet {
     //     dispatchBuilderAction('place_brick', { set: this.id, brick: cell.serialize(), position: [x, y, z] });
     // }
 
-    placeBrick(x: number, y: number, z: number, brick?: Brick): boolean {
+    placeOrRemoveBrick(x: number, y: number, z: number, brick?: Brick): boolean {
         if (brick) {
             // logDebug("BrickSet - placing a brick.");
             return this.doPlaceBrick(x, y, z, brick);
         }
         else {
-            // logDebug("BrickSet - removing a brick.");
+            logDebug("BrickSet - removing a brick.");
             return this.doRemoveBrick(x, y, z);
         }
-
     }
 
     doPlaceBrick(x: number, y: number, z: number, brick: Brick): boolean {

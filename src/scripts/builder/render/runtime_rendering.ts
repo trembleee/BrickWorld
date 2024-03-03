@@ -15,6 +15,7 @@ import { Vector2 } from "three";
 import { SerializedBrick } from '../brick/brick';
 import { inputStore } from '../inputs/InputStore';
 import { builderStore } from '../builderStore';
+import { BrickType } from '../brick/BrickType';
 
 export const bounds: { min?: number[], max?: number[] } = {};
 
@@ -126,7 +127,6 @@ export function handleActions(dispatchedActions: Array<{ action: string; payload
             if (data.setId !== currentSetId) {
                 continue;
             }
-            logDebug("Action handler - placing.")
             // if(item.action === 'remove_brick')
             // TODO:
             if (item.action === 'remove_brick') {
@@ -134,6 +134,7 @@ export function handleActions(dispatchedActions: Array<{ action: string; payload
             }
             else {
                 updateBounds(data.pos);
+                logDebug("Action handler - placing.")
             }
 
             if (data.brick.id) {
@@ -147,7 +148,7 @@ export function handleActions(dispatchedActions: Array<{ action: string; payload
                 else {
                     // for (const mat in voxels)
                     //     voxels[mat].setVoxel(...data.pos, '');
-                    voxelWorld.setVoxel(...data.pos, '');
+                    voxelWorld.setVoxel(...data.pos, '', '', false);
                 }
             }
 
@@ -162,7 +163,9 @@ export function handleActions(dispatchedActions: Array<{ action: string; payload
         // for (const mat in voxels) {
         //     voxels[mat].updateDirty();
         // }
-        voxelWorld.updateDirty();
+        if (voxelWorld) {
+            voxelWorld?.updateDirty();
+        }
 
         // update grid
         if (bounds.min) {

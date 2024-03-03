@@ -81,15 +81,6 @@ function setupScene() {
     addDefaultLights(scene, 1 * getCanvasSize() / 2, 2 * getCanvasSize() / 2, 3 * getCanvasSize() / 2);
 
     scene.background = new THREE.Color("#FAFAFA");
-    // scene.background = null;
-
-    // if (!GroundGrid.grid) {
-    //     GroundGrid.generate();
-    //     const grid = GroundGrid.grid as THREE.Mesh;
-    //     scene.add(grid);
-    //     logDebug("Grid added to the scene.");
-    // }
-
 
     if (!GroundGrid.grid) {
         GroundGrid.generate();

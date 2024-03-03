@@ -120,7 +120,15 @@ export class VoxelWorld {
         // TODO: map material
         const colorIndex = this.materialByColor.getIndex(color);
         // unique in the cell Uint16Array
-        cell[voxelOffset] = [brickType, colorIndex];
+        // Delete here ---- in origin version, if color === '', get index - 0, cell[voxelOffset] is set to 0!
+        if (addCell) {
+            // add
+            cell[voxelOffset] = [brickType, colorIndex];
+        }
+        else {
+            // delete
+            cell[voxelOffset] = undefined as unknown as [string, number];
+        }
 
         this.dirtyCells.add(this.computeCellId(x, y, z));
         // We might need to update neighboring regions because the meshes are optimised (no inside faces).
@@ -190,9 +198,6 @@ export class VoxelWorld {
                                     }
                                     uv2s.push(...uv);
                                 }
-                                // for (const mat of voxelMaterials) {
-                                //     cellMaterialaArray.push(mat.material);
-                                // }
                                 // every 6 indices with a material
                                 cellMaterialaArray.push(voxelMaterials[i].material);
                                 indices.push(ndx, ndx + 1, ndx + 2, ndx + 2, ndx + 1, ndx + 3);
@@ -220,8 +225,13 @@ export class VoxelWorld {
         const cellZ = Math.floor(z / this.cellSize);
         const cellId = this.computeCellId(x, y, z); // get CellId from coords again
         let mesh = this.cellIdToMesh[cellId];
-        const geometry = mesh ? mesh.geometry : new THREE.BufferGeometry();
 
+        // why are we still using the old geometry?
+        const geometry = mesh ? mesh.geometry : new THREE.BufferGeometry();
+        // const geometry = new THREE.BufferGeometry();
+        geometry.clearGroups();
+
+        // every time regenerate geometry info from scratch when model altered
         const { positions, normals, uvs, uv2s, indices, materials } = this.generateGeometryDataForCell(cellX, cellY, cellZ); // the start point of a cell, namely origin of a cell
 
         const positionNumComponents = 3;
@@ -255,6 +265,9 @@ export class VoxelWorld {
             // offset out cell
             mesh.position.set(cellX * this.cellSize, cellY * this.cellSize, cellZ * this.cellSize);
             this.object.add(mesh);
+        }
+        else {
+            mesh.material = materials;
         }
     }
 

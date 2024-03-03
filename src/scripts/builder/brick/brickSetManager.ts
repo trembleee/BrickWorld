@@ -11,7 +11,7 @@ export function generateDefaultSet() {
     set.name = 'DefaultSet';
     const data = defaultModel;
     for (const brickData of data) {
-        set.placeBrick(...brickData.pos, new Brick(brickData.material, brickData.color));
+        set.placeOrRemoveBrick(...brickData.pos, new Brick(brickData.material, brickData.color));
     }
     return set;
 }

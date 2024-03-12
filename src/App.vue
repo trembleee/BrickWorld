@@ -1,42 +1,71 @@
 <template>
-  <div id="app">
-    <nav v-if="!$route.meta.hideNav">
-      <router-link to="/">首页</router-link> |
-      <router-link to="/mining">挖矿</router-link> |
-      <router-link to="/marketPlace">市场</router-link> |
-      <router-link id="buildButton" to="/build">拼接</router-link>|
-      <router-link to="/portfolio">库存</router-link> |
-      <button>连接钱包</button>
-    </nav>
-    <router-view />
-  </div>
+  <v-app>
+
+    <TopBar></TopBar>
+
+    <v-main>
+      <router-view />
+    </v-main>
+
+  </v-app>
 </template>
 
-<style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-}
+<script lang="ts">
+import Vue from 'vue';
+import TopBar from './components/TopBar.vue'
 
-nav {
-  padding: 30px;
-}
+export default Vue.extend({
+  name: 'App',
 
-nav a {
-  font-weight: bold;
-  color: #2c3e50;
-}
+  components: {
+    TopBar
+  },
 
-nav a.router-link-exact-active {
-  color: #0dcbe9;
-}
+  data: () => ({
+  }),
+});
+</script>
 
-#buildButton {
-  border: 3px solid rgb(0, 0, 0);
-  display: inline-block;
-  text-decoration: none;
-}
+<script setup lang="ts">
+  import { createWeb3Modal, defaultConfig } from '@web3modal/ethers/vue'
+
+  // 1. Get projectId at https://cloud.walletconnect.com
+  const projectId = '5a5bb9b30db6071d046f51d1922f28a6'
+
+  // 2. Set chains
+  // const mainnet = {
+  //   chainId: 1,
+  //   name: 'Ethereum',
+  //   currency: 'ETH',
+  //   explorerUrl: 'https://etherscan.io',
+  //   rpcUrl: 'https://cloudflare-eth.com'
+  // }
+  const sepolia = {
+    chainId:11155111,
+    name: 'Sepolia',
+    currency:'ETH',
+    explorerUrl: 'https://sepolia.etherscan.io',
+    rpcUrl:'https://1rpc.io/sepolia'
+  }
+
+  // 3. Create modal
+  const metadata = {
+    name: 'BrickWorld',
+    description: 'BrickWorld description',
+    url: '', // origin must match your domain & subdomain
+    icons: ['']
+  }
+
+  createWeb3Modal({
+    ethersConfig: defaultConfig({ metadata }),
+    chains: [sepolia],
+    projectId,
+    enableAnalytics: false, // Optional - defaults to your Cloud configuration
+    enableOnramp: true, // Optional - false as default
+    themeMode: 'light'
+  })
+</script>
+
+<style scoped>
+
 </style>

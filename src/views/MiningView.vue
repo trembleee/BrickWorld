@@ -1,5 +1,36 @@
 <template>
   <div class="mining">
-    <h1>这是挖取积木页</h1>
+    <v-btn
+      outlined
+      color="#00ccff"
+      class="mint"
+      @click="mint()"
+    >
+      Outlined Button
+    </v-btn>
   </div>
 </template>
+
+<script>
+export default {
+  name: 'MiningView',
+  props: {
+  },
+  data() {
+    return {
+      
+    }
+  },
+  methods:{
+    mint(){
+      
+    }
+  }
+}
+</script>
+
+<style>
+.mint{
+  margin: 15px;
+}
+</style>

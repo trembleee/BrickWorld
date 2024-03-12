@@ -63,7 +63,7 @@ onBeforeMount(async () => {
 
 <style>
 .overlay {
-    z-index: 1;
+    z-index: 5;
 
     .color-picker {
         position: absolute;
@@ -73,9 +73,9 @@ onBeforeMount(async () => {
 }
 
 .canvas {
-    position: absolute;
+    position:absolute;
     top: 0;
     left: 0;
-    z-index: -1;
+    z-index: 4;
 }
 </style>

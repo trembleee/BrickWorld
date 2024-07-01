@@ -1,0 +1,8 @@
+现有的方块种类：beacon、dirt（土块）、log_oak、glass、oak_leaf、water_still
+
+五个稀有度（从低到高）：
+1. 纯色、water_still oak_log oak_leaf dirt
+2. glass cobblestone furnace
+3. beacon cobblestone_mossy red_brick
+4. ice glowstone redstone
+5. cactus tnt pumpkin

@@ -5,15 +5,9 @@ import { getRenderMaterial } from '../materials/MaterialMap';
 import { BrickType, getBrickMaterials } from './BrickType';
 import { logDebug } from '@/scripts/utils/Message';
 
-type vector3 = {
-    x: number,
-    y: number,
-    z: number
-};
-
 export class VoxelWorld {
     cellSize: number;
-    materialByColor: MaterialByColor;
+    material: MaterialByColor;
     cellSliceSize: number; // A cell contains multiple bricks, namely voxels, each brick has one unit width
     // cells: { [cellId: string]: Uint16Array }; // Map<number, Uint8Array>;
     cells: { [cellId: string]: Array<[string, number]> }; // Map<cellId, [brickType, colorIdx]>;
@@ -24,6 +18,7 @@ export class VoxelWorld {
     object: THREE.Object3D;
 
     static faces: Array<any>;
+    static getFaceIndexFromDir: (dir: THREE.Vector3) => number;
 
     constructor(options: { cellSize: number }) {
         this.cellSize = options.cellSize;
@@ -36,7 +31,7 @@ export class VoxelWorld {
 
         this.object = new THREE.Object3D();
 
-        this.materialByColor = getRenderMaterial('pure') as MaterialByColor;
+        this.material = getRenderMaterial('pure') as MaterialByColor;
     }
 
     reset() {
@@ -118,7 +113,7 @@ export class VoxelWorld {
         const voxelOffset = this.computeVoxelOffset(x, y, z);
         // material by color
         // TODO: map material
-        const colorIndex = this.materialByColor.getIndex(color);
+        const colorIndex = this.material.getIndex(color);
         // unique in the cell Uint16Array
         // Delete here ---- in origin version, if color === '', get index - 0, cell[voxelOffset] is set to 0!
         if (addCell) {
@@ -173,6 +168,7 @@ export class VoxelWorld {
                     // in fact, we get the color of the voxel
                     const voxel = this.getVoxel(voxelX, voxelY, voxelZ);
                     if (voxel) {
+                        logDebug("-------------- Start placing voxel -----------------");
                         // voxel 0 is sky (empty) so for UVs we start at 0
                         const uvVoxel = voxel[1] - 1;
                         const brickType = voxel[0];
@@ -182,8 +178,21 @@ export class VoxelWorld {
                         for (const i in VoxelWorld.faces) {
                             const { dir, corners, uvRow } = VoxelWorld.faces[i];
                             const neighbor = this.getVoxel(voxelX + dir[0], voxelY + dir[1], voxelZ + dir[2]);
+
+                            // neighbor material infos
+                            let neighborMaterials = null;
+                            const neighborFaceIndex = VoxelWorld.getFaceIndexFromDir(new THREE.Vector3(...dir.map((x: number) => x * -1)));
+                            if (neighbor) {
+                                // logDebug(dir.map((x: number) => x * -1));
+                                // logDebug("Neighbor exist with facce index - " + neighborFaceIndex);
+                                neighborMaterials = getBrickMaterials(neighbor[0]);
+                            }
+
+                            const neighborMaterial = neighborMaterials ? neighborMaterials[neighborFaceIndex] : null;
+                            const voxelMaterial = voxelMaterials ? voxelMaterials[i] : null;
+
                             // totally 24 for a cube, indexed in a face, the vertex between face/edge is repeated
-                            if (!neighbor || (this.materialByColor.material.transparent && neighbor !== voxel)) {
+                            if (!neighbor || (neighborMaterial && neighborMaterial.material.transparent && neighbor !== voxel && !(voxelMaterial?.material.transparent && neighborMaterial?.material.transparent))) {
                                 // this voxel has no neighbor in this direction so we need a face.
                                 const ndx = positions.length / 3;
                                 for (const { pos, uv } of corners) {
@@ -191,7 +200,7 @@ export class VoxelWorld {
                                     positions.push(pos[0] + x, pos[1] + y, pos[2] + z);
                                     normals.push(...dir);
                                     if (brickType === 'pure') {
-                                        uvs.push(...this.materialByColor.getUV(uvVoxel, uv));
+                                        uvs.push(...this.material.getUV(uvVoxel, uv));
                                     }
                                     else {
                                         uvs.push(...uv);
@@ -203,6 +212,7 @@ export class VoxelWorld {
                                 indices.push(ndx, ndx + 1, ndx + 2, ndx + 2, ndx + 1, ndx + 3);
                             }
                         }
+                        logDebug("-------------- End placing voxel -----------------");
                     }
                 }
             }
@@ -297,7 +307,7 @@ export class VoxelWorld {
 
     // from
     // http://www.cse.chalmers.se/edu/year/2010/course/TDA361/grid.pdf
-    intersectRay(start: vector3, end: vector3): null | { position: [number, number, number], normal: [number, number, number], voxel?: number } /*voxel refers to a color index here*/ {
+    intersectRay(start: THREE.Vector3, end: THREE.Vector3): null | { position: [number, number, number], normal: [number, number, number], voxel?: number } /*voxel refers to a color index here*/ {
         let dx = end.x - start.x;
         let dy = end.y - start.y;
         let dz = end.z - start.z;
@@ -446,3 +456,15 @@ VoxelWorld.faces = [
         ],
     },
 ];
+
+
+VoxelWorld.getFaceIndexFromDir = function (dir: THREE.Vector3): number {
+    if (dir.equals(new THREE.Vector3(0, 0, 1))) return 0;
+    if (dir.equals(new THREE.Vector3(0, 0, -1))) return 0;
+    if (dir.equals(new THREE.Vector3(0, 1, 0))) return 1;
+    if (dir.equals(new THREE.Vector3(0, -1, 0))) return 2;
+    if (dir.equals(new THREE.Vector3(0, 0, -1))) return 3;
+    if (dir.equals(new THREE.Vector3(-1, 0, 0))) return 4;
+    if (dir.equals(new THREE.Vector3(1, 0, 0))) return 5;
+    return 6;
+}

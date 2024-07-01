@@ -45,7 +45,7 @@ export default Vue.extend({
     name: 'Sepolia',
     currency:'ETH',
     explorerUrl: 'https://sepolia.etherscan.io',
-    rpcUrl:'https://1rpc.io/sepolia'
+    rpcUrl:'https://rpc.sepolia.org'
   }
 
   // 3. Create modal

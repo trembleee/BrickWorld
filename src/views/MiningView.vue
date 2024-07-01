@@ -99,6 +99,7 @@ export default {
       }
       if(receipt){
         let tokenId = parseInt(receipt.logs[0].topics[3])
+        console.log(tokenId)
         return tokenId 
       }
   
@@ -113,7 +114,7 @@ export default {
 
       let brickId = await this.searchTokenIdByMintHash(tx.hash)
       let brickURI = await this.getURIById(brickId)
-      this.getIPFSJSON(brickURI)
+      await this.getIPFSJSON(brickURI)
       
     },
 

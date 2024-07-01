@@ -34,11 +34,13 @@ onMounted(async () => {
     //     console.log("Window innerWidth: " + window.innerWidth);
     //     console.log("Window innerHeight: " + window.innerHeight);
     // })
+
     frame();
 });
 
 onBeforeUnmount(async () => {
     await unmount();
+    setup.value = false; // set this to false to stop the animation looping!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 });
 
 const frame = () => {

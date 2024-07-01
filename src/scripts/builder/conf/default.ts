@@ -106,3 +106,9 @@ export const defaultModel: { pos: [number, number, number]; color: string; mater
     { pos: [-2, 10, 0], color: '#ffffff', material: 'pure' },
     { pos: [-3, 11, 0], color: '#ffffff', material: 'pure' },
 ];
+
+export const simpleModel: { pos: [number, number, number]; color: string; material: string }[] = [
+    { pos: [-6, 0, 0], color: '#ffffff', material: 'under_water' },
+    { pos: [-6, 1, 0], color: '#ffffff', material: 'under_water' },
+    { pos: [-7, 1, 0], color: '#ffffff', material: 'under_water' }
+]

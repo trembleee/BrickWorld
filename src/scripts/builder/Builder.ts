@@ -196,6 +196,10 @@ export const sceneSetup = new Promise(resolve => {
     _sceneSetup = resolve;
 });
 
+/**
+ * Setup a canvas as an element on the builder page
+ * @param canvas 
+ */
 export async function setupCanvas(canvas: HTMLCanvasElement) {
     // wait threejs to load
     await threeSetupComplete;

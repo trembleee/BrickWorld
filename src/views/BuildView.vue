@@ -5,7 +5,7 @@
             <button @click="switchToState('inspect')">Inspect</button>
             <button @click="switchToState('place')">Place</button>
             <button @click="switchToState('erase')">Erase</button>
-            <PlacePane v-if="placePaneVisible" class="color-picker"></PlacePane>
+            <PlacePanal v-if="placePaneVisible" class="color-picker"></PlacePanal>
         </div>
         <WebGLCanvas class="canvas" />
     </div>
@@ -13,6 +13,7 @@
 
 <script setup lang="ts">
 import { onBeforeMount, computed } from 'vue';
+// import { useRouter, useRoute } from 'vue-router';
 import { builderStore } from '@/scripts/builder/builderStore';
 import { inputStore } from '@/scripts/builder/inputs/InputStore'
 import { generateDefaultSet } from "@/scripts/builder/brick/brickSetManager"
@@ -20,7 +21,7 @@ import { logDebug } from "@/scripts/utils/Message"
 import { dispatchBuilderAction } from '@/scripts/builder/render/dispatchAction';
 import { setupInputMap } from '@/scripts/builder/inputs/inputStates/SetupInputMap';
 import { inputInitComplete } from '@/scripts/builder/inputs/InputLoading';
-import PlacePane from "@/components/builder/PlacePane.vue"
+import PlacePanal from "@/components/builder/PlacePanal.vue"
 import WebGLCanvas from '@/components/builder/WebGLCanvas.vue';
 // import { getSetObject } from '@/scripts/builder/render/runtime_rendering';
 
@@ -59,6 +60,11 @@ onBeforeMount(async () => {
 
     dispatchBuilderAction('select_set', currentSet.value); // generate the voxelWorld with its brick 
 });
+
+// const route = useRouter();
+// const onQuitClicked = async () => {
+
+// };
 </script>
 
 <style>

@@ -9,6 +9,7 @@ export type MaterialInitStruct = {
     metalness?: number,
     roughness?: number,
     color?: number, // hex
+    side?: number
 
     // other params that don't used in THREE.Material constructor
     map?: string,
@@ -35,7 +36,10 @@ export class Material {
 
         let texture: THREE.Texture = undefined as unknown as THREE.Texture;
         if (payload?.map) {
+            // texture loading
             texture = textureLoader.load(payload.map);
+            texture.minFilter = THREE.LinearFilter;
+            texture.magFilter = THREE.NearestFilter;
             threeMeshConstructInfo.map = texture;
         }
 

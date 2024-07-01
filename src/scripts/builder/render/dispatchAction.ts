@@ -8,9 +8,9 @@ export type type_place_brick_payload = { setId: string; brick: SerializedBrick; 
 export type type_remove_brick_payload = { setId: string; brick: { id: string | undefined }; pos: [number, number, number] };
 
 const preprocessor: { [key: string]: (payload: any) => any } = {
-    select_set: (payload: BrickSet) => {
+    select_set: (payload: BrickSet): type_select_set_payload => {
         // Fetch the minimum required data to place stuff.
-        const data = { setId: payload.id, bricks: [] as Array<{ pos: [number, number, number], color: string, material: string, id: string | undefined }> };
+        const data: type_select_set_payload = { setId: payload.id, bricks: [] };
 
         payload.forEach((cell: Brick, pos: [number, number, number]) => {
             data.bricks.push({ pos, color: cell.color, material: cell.material, id: cell.id });

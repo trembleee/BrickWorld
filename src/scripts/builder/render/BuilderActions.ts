@@ -2,12 +2,15 @@ import { BrickSet } from './../brick/brickSet';
 import { Brick } from '../brick/brick';
 import { threeSetupComplete } from '@/scripts/builder/render/three_loading';
 import type { THREE as THREE_TYPE } from '@/scripts/builder/render/three';
+import { builderStore } from '@/scripts/builder/BuilderStore'
 import { inputStore } from '@/scripts/builder/inputs/InputStore';
 import { logDebug } from '@/scripts/utils/Message';
 
 
 let THREE: typeof THREE_TYPE;
 threeSetupComplete.then(x => THREE = x as typeof THREE_TYPE);
+
+const { currentSet, saveState } = builderStore;
 
 // A BuilderAction acts on a set and has the following methods:
 // - Allowed() - returns true if the action is allowed to be performed
@@ -96,40 +99,16 @@ export class PlaceOrRemoveBriqs extends BuilderAction {
             const briq = briqData.color
                 ? new Brick(briqData.material, briqData.color).setNFTid(briqData.id)
                 : undefined;
+
+            // presence for place || undefined for remove
             set.placeOrRemoveBrick(...briqData.pos, briq);
             // logDebug("Brick added.");
         }
+
+        // log history state
+        saveState(currentSet.value.serialize());
         // inputStore.selectionMgr.clear();
         // dispatchBuilderAction("place_briqs", grphcs);
         // inputStore.selectionMgr.clear();
     }
 }
-
-
-// export class PaintBriqs extends BuilderAction {
-//     payload;
-//     oldColors;
-
-//     constructor(set: SetData, payload: { pos: [number, number, number], color?: string, material?: string }[]) {
-//         super();
-//         this.payload = payload;
-//         const colors = [];
-//         for (const d of this.payload) {
-//             const cell = set.getAt(...(d.pos as [number, number, number]));
-//             if (cell)
-//                 colors.push({ pos: d.pos, color: cell.color, material: cell.material });
-//         }
-//         this.oldColors = colors;
-//         return this;
-//     }
-
-//     undo(set: SetData) {
-//         for (const d of this.oldColors)
-//             set.modifyBriq(...d.pos, d);
-//     }
-
-//     redo(set: SetData) {
-//         for (const d of this.payload)
-//             set.modifyBriq(...d.pos, d);
-//     }
-// }

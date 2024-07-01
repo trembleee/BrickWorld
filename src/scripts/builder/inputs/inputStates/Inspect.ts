@@ -7,7 +7,7 @@ import { camera } from '@/scripts/builder/Builder';
 
 import { watchEffect, WatchStopHandle } from 'vue';
 import { inputStore } from '../InputStore';
-import { builderStore } from '@/scripts/builder/builderStore';
+import { builderStore } from '@/scripts/builder/BuilderStore';
 
 const { currentSet } = builderStore;
 

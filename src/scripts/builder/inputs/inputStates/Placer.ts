@@ -5,7 +5,7 @@ import { inputStore } from '../InputStore';
 import { THREE } from '@/scripts/builder/render/three';
 
 import { watchEffect } from 'vue';
-import { builderStore } from '@/scripts/builder/builderStore';
+import { builderStore } from '@/scripts/builder/BuilderStore';
 import { BrickGrid } from '../../brick/brickGrid';
 import { PlaceOrRemoveBriqs } from '@/scripts/builder/render/BuilderActions';
 import { logDebug } from '@/scripts/utils/Message';

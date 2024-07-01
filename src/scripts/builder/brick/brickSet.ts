@@ -5,13 +5,46 @@ import { logDebug } from "@/scripts/utils/Message";
 import { type_place_brick_payload, type_remove_brick_payload } from "@/scripts/builder/render/dispatchAction";
 
 // import { dispatchBuilderAction } from '@/builder/graphics/Dispatch';
-export type SerializedBrickSet = {
-    id: string,
-    name: string,
-    description: string,
-    regionSize: number,
-    version?: number,
-    bricks: { pos: [number, number, number], data: SerializedBrick }[]
+export class SerializedBrickSet {
+    id?: string;
+    name?: string;
+    description?: string;
+    regionSize?: number;
+    version?: number;
+    bricks: { pos: [number, number, number], data: SerializedBrick }[] = [];
+
+    constructor(id?: string,
+        name?: string,
+        description?: string,
+        regionSize?: number,
+        version?: number,
+        bricks?: { pos: [number, number, number], data: SerializedBrick }[]) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.regionSize = regionSize;
+        this.version = version;
+        this.bricks = bricks || [];
+    }
+
+    copy(): SerializedBrickSet {
+        const newObject = new SerializedBrickSet();
+        newObject.id = this.id;
+        newObject.name = this.name;
+        newObject.description = this.description;
+        newObject.regionSize = this.regionSize;
+        newObject.version = this.version;
+
+        const newBricks = [];
+        for (const brick of this.bricks) {
+            const newPos: [number, number, number] = [brick.pos[0], brick.pos[1], brick.pos[2]];
+            const newData: SerializedBrick = brick.data.copy();
+            const newBrick: { pos: [number, number, number], data: SerializedBrick } = { pos: newPos, data: newData };
+            newBricks.push(newBrick);
+        }
+        newObject.bricks = newBricks;
+        return newObject;
+    }
 }
 
 const REGION_SIZE = 100000;
@@ -51,7 +84,7 @@ export class BrickSet {
     }
 
     serialize() {
-        const ret: any = {};
+        const ret: SerializedBrickSet = new SerializedBrickSet();
         ret.id = this.id;
         ret.name = this.name;
         ret.description = this.description;
@@ -75,21 +108,17 @@ export class BrickSet {
         return ret;
     }
 
-    deserialize(data: any): BrickSet {
+    deserialize(data: SerializedBrickSet): BrickSet {
         if (data.id && this.id !== data.id)
             throw new Error('Set tried to load data from the wrong set');
         this.reset();
-        this.name = data.name;
+        this.name = data?.name || "";
         this.description = data?.description || '';
-        this.regionSize = data.regionSize || REGION_SIZE;
-        const version = data.version;
+        this.regionSize = data?.regionSize || REGION_SIZE;
+        const version = data?.version;
         for (const brick of data.bricks) {
             const cell = new Brick();
             cell.deserialize(brick.data);
-            // if (version === SET_DATA_VERSION)
-            //     cell.deserialize(brick.data);
-            // else
-            //     cell.deserializeV0(brick.data);
             this.placeOrRemoveBrick(brick.pos[0], brick.pos[1], brick.pos[2], cell);
         }
         return this;

@@ -14,7 +14,7 @@ import { logDebug, printStackTrace } from "@/scripts/utils/Message";
 import { Vector2 } from "three";
 import { SerializedBrick } from '../brick/brick';
 import { inputStore } from '../inputs/InputStore';
-import { builderStore } from '../builderStore';
+import { builderStore } from '@/scripts/builder/BuilderStore';
 import { BrickType } from '../brick/BrickType';
 
 export const bounds: { min?: number[], max?: number[] } = {};

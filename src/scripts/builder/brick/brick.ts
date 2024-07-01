@@ -1,11 +1,31 @@
 import { hexUuid } from "./Uuid"
 import { CONF } from '@/scripts/builder/conf/conf';
 
-export type SerializedBrick = {
-    material: string,
-    color: string,
-    id?: string
-};
+export class SerializedBrick {
+    material?: string;
+    color?: string;
+    id?: string;
+    rarity?: number;
+
+    constructor(material?: string,
+        color?: string,
+        id?: string,
+        rarity?: number) {
+        this.material = material;
+        this.color = color;
+        this.rarity = rarity;
+        this.id = id;
+    }
+
+    copy(): SerializedBrick {
+        const newObject = new SerializedBrick();
+        newObject.material = this.material;
+        newObject.color = this.color;
+        newObject.id = this.id;
+        newObject.rarity = this.rarity;
+        return newObject;
+    }
+}
 
 export class Brick {
     // Chain metadata
@@ -14,6 +34,7 @@ export class Brick {
 
     // Off-chain metadata
     color: string;
+    rarity: undefined | number;
 
     // NFT ID. If present, this briq is assumed to be an on-chain NFT.
     id: string | undefined;
@@ -44,12 +65,9 @@ export class Brick {
 
     serialize() {
         // No need to serialize the set, we don't store briqs outside of sets.
-        const ret: SerializedBrick = {
-            material: this.material,
-            color: this.color.toLowerCase(),
-        };
-        if (this.id)
-            ret.id = this.id;
+        const ret: SerializedBrick = new SerializedBrick(this.material, this.color.toLowerCase());
+        ret.id = this.id || "";
+        ret.rarity = this.rarity || 0;
         return ret;
     }
 
@@ -60,6 +78,8 @@ export class Brick {
         this.color = data.color || '#000000';
         if (data.id)
             this.id = data.id;
+        if (data.rarity)
+            this.rarity = data.rarity;
         return this;
     }
 

@@ -2,9 +2,12 @@
     <div class="about">
         <!-- <h1>拼接页面（网页全屏）</h1> -->
         <div class="overlay">
-            <button @click="switchToState('inspect')">Inspect</button>
-            <button @click="switchToState('place')">Place</button>
-            <button @click="switchToState('erase')">Erase</button>
+            <v-btn outlined color="#00ccff" class="operators" @click="switchToState('inspect')">Inspect</v-btn>
+            <v-btn outlined color="#00ccff" class="operators" @click="switchToState('place')">Place</v-btn>
+            <v-btn outlined color="#00ccff" class="operators" @click="switchToState('erase')">Erase</v-btn>
+            <v-btn outlined color="#00ccff" class="operators" @click="Undo">Undo</v-btn>
+            <v-btn outlined color="#00ccff" class="operators" @click="Redo">Redo</v-btn>
+            <v-btn outlined color="#00ccff" class="operators" @click="Debug">Debug</v-btn>
             <PlacePanal v-if="placePaneVisible" class="color-picker"></PlacePanal>
         </div>
         <WebGLCanvas class="canvas" />
@@ -13,10 +16,9 @@
 
 <script setup lang="ts">
 import { onBeforeMount, computed } from 'vue';
-// import { useRouter, useRoute } from 'vue-router';
-import { builderStore } from '@/scripts/builder/builderStore';
+import { builderStore } from '@/scripts/builder/BuilderStore';
 import { inputStore } from '@/scripts/builder/inputs/InputStore'
-import { generateDefaultSet } from "@/scripts/builder/brick/brickSetManager"
+import { generateDefaultSet, deserializeSet } from "@/scripts/builder/brick/brickSetManager"
 import { logDebug } from "@/scripts/utils/Message"
 import { dispatchBuilderAction } from '@/scripts/builder/render/dispatchAction';
 import { setupInputMap } from '@/scripts/builder/inputs/inputStates/SetupInputMap';
@@ -25,7 +27,7 @@ import PlacePanal from "@/components/builder/PlacePanal.vue"
 import WebGLCanvas from '@/components/builder/WebGLCanvas.vue';
 // import { getSetObject } from '@/scripts/builder/render/runtime_rendering';
 
-const { currentSet, selectSet, resetBuilderState } = builderStore;
+const { currentSet, selectSet, resetBuilderState, undoState, redoState, debugState, saveState } = builderStore;
 
 // here currentInput is just a normal const viarable, not a reactive, since it is a copy of the inputStore.currenInput
 // const { switchToState, currentInput } = inputStore;
@@ -58,18 +60,43 @@ onBeforeMount(async () => {
     // It is then when currentSet local viarable in file runtime_rendering have a chance to be accessed
     // So maybe the currentSet local viarable can be replaced by currentSet setData?
 
+    saveState(currentSet.value.serialize());
     dispatchBuilderAction('select_set', currentSet.value); // generate the voxelWorld with its brick 
 });
 
-// const route = useRouter();
-// const onQuitClicked = async () => {
+const Undo = async () => {
+    const undoInfo = undoState();
+    const newSet = deserializeSet(undoInfo);
+    await selectSet(newSet);
+    dispatchBuilderAction('select_set', currentSet.value);
+}
 
-// };
+const Redo = async () => {
+    const redoInfo = redoState();
+    const newSet = deserializeSet(redoInfo);
+    await selectSet(newSet);
+    dispatchBuilderAction('select_set', currentSet.value);
+}
+
+const Debug = () => {
+    debugState();
+}
+
 </script>
 
 <style>
+.about {
+    position: relative;
+}
+
 .overlay {
+    position: relative;
     z-index: 5;
+    text-align: center;
+
+    .operators {
+        margin: 15px;
+    }
 
     .color-picker {
         position: absolute;
@@ -79,9 +106,9 @@ onBeforeMount(async () => {
 }
 
 .canvas {
-    position:absolute;
+    position: absolute;
     top: 0;
     left: 0;
-    z-index: 4;
+    z-index: 0;
 }
-</style>
+</style>@/scripts/builder/BuilderStore

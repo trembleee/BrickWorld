@@ -37,7 +37,80 @@ const { switchToState } = inputStore;
 // const { InitSolidityContracts, modelContract } = contractStore;
 
 
+// //初始化合约调用相关
+// import { Contract, ethers } from 'ethers';
+// import brickABIJSON from '../ABIs/brickABI.json'
+// import modelABIJSON from '../ABIs/modelABI.json'
+// import marketABIJSON from '../ABIs/marketABI.json'
 
+// const openseaAPI = "bcee010a55b74f14ac1a3bbd8b9dd118"
+// const brickAddress = "0x8400431edd44ED24b1341024e1A5F7339554A13A"
+// const modelAddress = "0x35b637c929c88cd77ec8c53682bcfd309b7edcb9"
+// const marketAddress = "0x370297884a02dcf327020add676aec8a2f082999"
+// const brickABI = brickABIJSON
+// const modelABI = modelABIJSON
+// const marketABI = marketABIJSON
+// //获取provider,signer,可写合约contract
+// let signer
+// let provider
+// let brickContract
+// let modelContract
+// let marketContract
+// async function getInf() {
+//   if (window.ethereum == null) {
+//     console.log("MetaMask not installed; using read-only defaults")
+//     provider = ethers.getDefaultProvider()
+//   } else {
+//     provider = new ethers.BrowserProvider(window.ethereum)
+//     signer = await provider.getSigner()
+//   }
+//   brickContract = new Contract(brickAddress, brickABI, signer)
+//   modelContract = new Contract(modelAddress, modelABI, signer)
+//   marketContract = new Contract(marketAddress, marketABI, signer)
+// }
+// await getInf()
+
+// let bricks = []
+// let myAddress = ''
+
+// onMounted(async ()=>{
+
+// })
+
+// async function refresh(){
+//     bricks = []
+//     await getMyAddress()//先获取我的地址赋值给myAddress，后面获取brick要用
+//     await getBricks()
+// }
+
+// async function getMyAddress(){
+//     // 获取用户地址
+//     const accounts = await provider.listAccounts();
+//     myAddress = accounts[0].address; // 第一个地址即为当前用户的地址
+//     //console.log('当前用户地址:', address);
+//     return myAddress
+// }
+// async function getBricks(){
+//     const options = { method: 'GET', headers: { accept: 'application/json' } };
+
+//     //调用opensea api获取地址拥有的所有brick nft
+//     await fetch('https://testnets-api.opensea.io/api/v2/chain/sepolia/account/' + myAddress + '/nfts?collection=brick-3', options)
+//     .then(response => response.json())
+//     .then(async (response) => {
+//         response.nfts.forEach(element => {
+//             setBrick(element.identifier)//对每一个brick调用setbrick函数,获取稀有度加到数组中
+//         });
+//     })
+//     .catch(err => console.error(err));
+// }
+// async function setBrick(id){
+//     let rarity = await brickContract.getRarity(id)//获取稀有度
+//     let brick = {
+//         id: id,
+//         rarity: rarity
+//     }//创建brick
+//     bricks.push(brick)//加入数组中
+// }
 
 const placePaneVisible = computed(() => {
     return inputStore.currentInput === "place" ? true : false;

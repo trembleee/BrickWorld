@@ -62,7 +62,7 @@
           </v-card-actions>
         </v-card>
       </v-dialog>
-      
+
     </v-container>
   </v-app>
 </template>
@@ -71,7 +71,7 @@
 
 
 //初始化合约调用相关
-import { Contract,ethers } from 'ethers';
+import { Contract, ethers } from 'ethers';
 import brickABIJSON from '../ABIs/brickABI.json'
 import modelABIJSON from '../ABIs/modelABI.json'
 import marketABIJSON from '../ABIs/marketABI.json'
@@ -89,17 +89,17 @@ let provider
 let brickContract
 let modelContract
 let marketContract
-async function getInf(){
+async function getInf() {
   if (window.ethereum == null) {
     console.log("MetaMask not installed; using read-only defaults")
     provider = ethers.getDefaultProvider()
   } else {
-      provider = new ethers.BrowserProvider(window.ethereum)
-      signer = await provider.getSigner()
+    provider = new ethers.BrowserProvider(window.ethereum)
+    signer = await provider.getSigner()
   }
-  brickContract = new Contract(brickAddress,brickABI,signer)
-  modelContract = new Contract(modelAddress,modelABI,signer)
-  marketContract = new Contract(marketAddress,marketABI,signer)
+  brickContract = new Contract(brickAddress, brickABI, signer)
+  modelContract = new Contract(modelAddress, modelABI, signer)
+  marketContract = new Contract(marketAddress, marketABI, signer)
 }
 await getInf()
 
@@ -109,11 +109,11 @@ export default {
   props: {
 
   },
-  data(){
-    return{
+  data() {
+    return {
       items: [
       ],
-      myAddress:'',
+      myAddress: '',
       dialog: false,
       dialog2: false,
       approved: false,
@@ -121,7 +121,7 @@ export default {
       price: 0,
     }
   },
-  mounted(){
+  mounted() {
     this.getInfo()
   },
   methods: {
@@ -132,17 +132,17 @@ export default {
       this.dialog = true
       console.log('上架物品:', item);
       let res = await brickContract.getApproved(item.id)
-      if(ethers.getAddress(res)===ethers.getAddress(marketAddress)){//已经授权
+      if (ethers.getAddress(res) === ethers.getAddress(marketAddress)) {//已经授权
         this.approved = true
-      }else{
+      } else {
         console.log('!=')
         console.log(res.toLowerCase())
         console.log(marketAddress.toLowerCase())
       }
     },
-    async approve(){
-      console.log('approve',this.handleItem.id)
-      const tx = await brickContract.approve(marketAddress,this.handleItem.id)
+    async approve() {
+      console.log('approve', this.handleItem.id)
+      const tx = await brickContract.approve(marketAddress, this.handleItem.id)
       console.log('Transaction sent:', tx.hash)
 
       const receipt = await tx.wait();
@@ -154,13 +154,13 @@ export default {
         console.error('Transaction failed:', receipt);
       }
     },
-    async list(){
-      if(this.approved == true){//已经授权,处理上架逻辑
+    async list() {
+      if (this.approved == true) {//已经授权,处理上架逻辑
 
-        if(this.price<=0){
+        if (this.price <= 0) {
           alert('请输入大于0的价格')
-        }else{
-          const tx = await marketContract.list(brickAddress,this.handleItem.id,ethers.parseEther(this.price))//转换为wei上架
+        } else {
+          const tx = await marketContract.list(brickAddress, this.handleItem.id, ethers.parseEther(this.price))//转换为wei上架
           console.log('Transaction sent:', tx.hash)
           const receipt = await tx.wait();
 
@@ -174,49 +174,49 @@ export default {
             console.error('Transaction failed:', receipt);
           }
         }
-      }else{
+      } else {
         alert('请先授权方块！')
       }
     },
-    async getInfo(){
-      this.items=[]
-      console.log(openseaAPI,brickContract,modelContract,marketContract)
+    async getInfo() {
+      this.items = []
+      console.log(openseaAPI, brickContract, modelContract, marketContract)
       await this.getMyAddress()
       await this.getBricks()
       await this.getListedBricks()
     },
 
-    async getBricks(){
-        const options = {method: 'GET', headers: {accept: 'application/json'}};
+    async getBricks() {
+      const options = { method: 'GET', headers: { accept: 'application/json' } };
 
-        await fetch('https://testnets-api.opensea.io/api/v2/chain/sepolia/account/'+this.myAddress+'/nfts?collection=brick-3', options)
+      await fetch('https://testnets-api.opensea.io/api/v2/chain/sepolia/account/' + this.myAddress + '/nfts?collection=brick-3', options)
         .then(response => response.json())
         .then(async (response) => {
-            response.nfts.forEach(element => {
-              this.getDetailInfo(element.identifier)
-            });
+          response.nfts.forEach(element => {
+            this.getDetailInfo(element.identifier)
+          });
         })
         .catch(err => console.error(err));
     },
-    async getListedBricks(){//获取我已经上架的
+    async getListedBricks() {//获取我已经上架的
       let sum = await brickContract.totalSupply()
       sum = Number(sum)
-      for(let i=0;i<sum;i++){
-        let proxy = await marketContract.nftList(brickAddress,i)
-        if(proxy.owner.toLowerCase()==this.myAddress.toLowerCase()){//是我上架的
+      for (let i = 0; i < sum; i++) {
+        let proxy = await marketContract.nftList(brickAddress, i)
+        if (proxy.owner.toLowerCase() == this.myAddress.toLowerCase()) {//是我上架的
           let price = ethers.formatEther(proxy.price)
-          this.getDetailInfo(i,price)
+          this.getDetailInfo(i, price)
         }
       }
     },
-    async getMyAddress(){
-        // 获取用户地址
-        const accounts = await provider.listAccounts();
-        this.myAddress = accounts[0].address; // 第一个地址即为当前用户的地址
-        //console.log('当前用户地址:', address);
-        return this.myAddress
+    async getMyAddress() {
+      // 获取用户地址
+      const accounts = await provider.listAccounts();
+      this.myAddress = accounts[0].address; // 第一个地址即为当前用户的地址
+      //console.log('当前用户地址:', address);
+      return this.myAddress
     },
-    async getDetailInfo(id,price=0){
+    async getDetailInfo(id, price = 0) {
       let r = await brickContract.getRarity(id)
       let img
       let des
@@ -228,7 +228,7 @@ export default {
           break;
         case 2:
           img = 'https://696b9fbef8ec8b266064095c69f2191c.ipfs.4everland.link/ipfs/bafybeidvvyquae5k6ge7b4a4tpn3y3gwvuyqyo73nbuo5f65ya76ncukxi'
-          des= '稀有方块'
+          des = '稀有方块'
           break;
         case 3:
           img = 'https://696b9fbef8ec8b266064095c69f2191c.ipfs.4everland.link/ipfs/bafybeidntv3cewlapy5npy6uryikjcmpyq4wyi22r5vp5iu4cwg4rj3nrq'
@@ -240,24 +240,24 @@ export default {
           break;
         case 5:
           img = 'https://696b9fbef8ec8b266064095c69f2191c.ipfs.4everland.link/ipfs/bafybeihvlp3wb4lhhtqj2yllmxgpf6l3vbrfhbqnxczoqvpqnkpewpyfuy'
-          des= '传说方块'
+          des = '传说方块'
           break;
         default:
           break;
       }
-      console.log(id,r,img,price)
+      console.log(id, r, img, price)
       let newItem
-      if(price==0){
+      if (price == 0) {
         newItem = {
           image: img,
-          title: '#'+id,
+          title: '#' + id,
           description: des,
           id: id
         }
-      }else{
+      } else {
         newItem = {
           image: img,
-          title: '#'+id,
+          title: '#' + id,
           description: des,
           id: id,
           price: price
@@ -266,8 +266,8 @@ export default {
 
       this.items.push(newItem)
     },
-    async handleRevoke(item){
-      const tx = await marketContract.revoke(brickAddress,item.id)
+    async handleRevoke(item) {
+      const tx = await marketContract.revoke(brickAddress, item.id)
       console.log('Transaction sent:', tx.hash)
       const receipt = await tx.wait();
 
@@ -280,12 +280,12 @@ export default {
         console.error('Transaction failed:', receipt);
       }
     },
-    async handleUpdate(item){
+    async handleUpdate(item) {
       this.dialog2 = true
       this.handleItem = item
     },
-    async update(){
-      const tx = await marketContract.update(brickAddress,this.handleItem.id,ethers.parseEther(this.price))//转换为wei修改
+    async update() {
+      const tx = await marketContract.update(brickAddress, this.handleItem.id, ethers.parseEther(this.price))//转换为wei修改
       console.log('Transaction sent:', tx.hash)
       const receipt = await tx.wait();
 
@@ -304,7 +304,7 @@ export default {
 </script>
 
 <style>
-.custom-dialog{
+.custom-dialog {
   max-height: 80vh;
 }
 </style>

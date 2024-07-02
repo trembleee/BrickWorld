@@ -8,6 +8,7 @@
             <v-btn outlined color="#00ccff" class="operators" @click="Undo">Undo</v-btn>
             <v-btn outlined color="#00ccff" class="operators" @click="Redo">Redo</v-btn>
             <v-btn outlined color="#00ccff" class="operators" @click="Debug">Debug</v-btn>
+            <v-btn outlined color="#00ccff" class="operators" @click="MintCurrentBrickSetToModel">Mint</v-btn>
             <PlacePanal v-if="placePaneVisible" class="color-picker"></PlacePanal>
         </div>
         <WebGLCanvas class="canvas" />
@@ -18,6 +19,7 @@
 import { onBeforeMount, computed } from 'vue';
 import { builderStore } from '@/scripts/builder/BuilderStore';
 import { inputStore } from '@/scripts/builder/inputs/InputStore'
+// import { contractStore } from '@/scripts/Contracts/ContractsStore'
 import { generateDefaultSet, deserializeSet } from "@/scripts/builder/brick/brickSetManager"
 import { logDebug } from "@/scripts/utils/Message"
 import { dispatchBuilderAction } from '@/scripts/builder/render/dispatchAction';
@@ -30,8 +32,11 @@ import WebGLCanvas from '@/components/builder/WebGLCanvas.vue';
 const { currentSet, selectSet, resetBuilderState, undoState, redoState, debugState, saveState } = builderStore;
 
 // here currentInput is just a normal const viarable, not a reactive, since it is a copy of the inputStore.currenInput
-// const { switchToState, currentInput } = inputStore;
 const { switchToState } = inputStore;
+
+// const { InitSolidityContracts, modelContract } = contractStore;
+
+
 
 
 const placePaneVisible = computed(() => {
@@ -57,6 +62,7 @@ onBeforeMount(async () => {
     resetBuilderState();
     await inputInitComplete;
     await initializeStartSet(); // currentSet is setup
+    // await InitSolidityContracts(); // wait contract init
     // It is then when currentSet local viarable in file runtime_rendering have a chance to be accessed
     // So maybe the currentSet local viarable can be replaced by currentSet setData?
 
@@ -80,6 +86,10 @@ const Redo = async () => {
 
 const Debug = () => {
     debugState();
+}
+
+const MintCurrentBrickSetToModel = () => {
+
 }
 
 </script>

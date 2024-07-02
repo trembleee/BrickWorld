@@ -108,7 +108,7 @@ export default {
   data() {
     return {
       tab: 0,
-      colors: ['gray', 'green', 'blue', 'purple', 'yellow'],
+      colors: ['rgba(160,160,160,0.5)', 'rgba(102,255,102,0.5)', 'rgba(102,178,255,0.5)', 'rgba(178,102,255,0.5)', 'rgba(255,255,102,0.5)'],
       myAddress: '',
       myBalance: 0,
       brickNum: 0,

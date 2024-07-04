@@ -7,7 +7,7 @@ export class BrickType {
     }
 }
 
-import { getRenderMaterial } from "../materials/MaterialMap";
+import { getFaceRenderMaterial } from "../materials/MaterialMap";
 import { Material } from "../materials/Material";
 import { BrickMaterialData } from "./BrickMaterialData";
 import { logDebug } from "@/scripts/utils/Message";
@@ -27,10 +27,19 @@ export function getBrickMaterials(brickType: string) {
 
         for (const facemat of brickMat.faces) {
             // logDebug(facemat);
-            materials.push(getRenderMaterial(facemat));
+            materials.push(getFaceRenderMaterial(facemat));
         }
         // assersion here, check disabled
         brickTypeToMaterialsMap[brickType] = ret = materials as BrickMaterialsArray;
     }
     return ret;
+}
+
+export function getMaterialCost(brickType: string): number {
+    const brickMat = BrickMaterialData[brickType];
+    if (!brickMat) {
+        throw "No such brickType " + brickType;
+    }
+    return brickMat.cost;
+    return 0;
 }

@@ -19,7 +19,7 @@ import { CONF } from './conf/conf';
 import { bounds, getSetObject, handleActions, GroundGrid } from './render/runtime_rendering';
 import { BrickGrid } from './brick/brickGrid';
 import { HemisphereLight, Scene } from 'three';
-import { watchEffect } from 'vue';
+import { shallowRef, watchEffect } from 'vue';
 import { dispatchBuilderAction, dispatchedActions } from './render/dispatchAction';
 import { logDebug } from '../utils/Message';
 import { Brick } from './brick/brick';
@@ -33,6 +33,8 @@ export const orbitControls = {
 };
 
 export let scene: THREE.Scene;
+
+export const canvasInstance = shallowRef(null as unknown as HTMLCanvasElement);
 
 let renderer: THREE.Renderer;
 
@@ -177,7 +179,7 @@ function resizeRendererToDisplaySize(renderer: THREE.Renderer, composer: Instanc
     return needResize;
 }
 
-export function render() {
+export async function render() {
 
     resizeRendererToDisplaySize(renderer, composer, camera);
 
@@ -196,11 +198,22 @@ export const sceneSetup = new Promise(resolve => {
     _sceneSetup = resolve;
 });
 
+export let _setCanvasSetupComplete: any;
+
+// Await this to wait until the wallet init process is complete.
+export const canvasSetupComplete = new Promise((resolve, _) => {
+    _setCanvasSetupComplete = resolve;
+});
+
+
 /**
  * Setup a canvas as an element on the builder page
  * @param canvas 
  */
 export async function setupCanvas(canvas: HTMLCanvasElement) {
+
+    // set canvas instance
+    canvasInstance.value = canvas;
     // wait threejs to load
     await threeSetupComplete;
 
@@ -236,6 +249,7 @@ export async function setupCanvas(canvas: HTMLCanvasElement) {
     })
 
     _sceneSetup();
+    _setCanvasSetupComplete();
 }
 
 export async function unmount() {

@@ -5,7 +5,7 @@ import { logDebug } from "@/scripts/utils/Message";
 
 export const materialMap: { [material: string]: Material } = {};
 
-export function getRenderMaterial(material: string) {
+export function getFaceRenderMaterial(material: string) {
     let ret = materialMap[material];
     // console.log("Material:", material);
 

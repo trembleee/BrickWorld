@@ -1,7 +1,7 @@
 import { THREE } from '@/scripts/builder/render/three';
 
 import type { MaterialByColor } from '@/scripts/builder/materials/MaterialByColor';
-import { getRenderMaterial } from '../materials/MaterialMap';
+import { getFaceRenderMaterial } from '../materials/MaterialMap';
 import { BrickType, getBrickMaterials } from './BrickType';
 import { logDebug } from '@/scripts/utils/Message';
 
@@ -31,7 +31,7 @@ export class VoxelWorld {
 
         this.object = new THREE.Object3D();
 
-        this.material = getRenderMaterial('pure') as MaterialByColor;
+        this.material = getFaceRenderMaterial('pure') as MaterialByColor;
     }
 
     reset() {

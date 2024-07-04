@@ -11,6 +11,7 @@ export class SerializedBrickSet {
     description?: string;
     regionSize?: number;
     version?: number;
+    thumbnailPicture?: string;
     bricks: { pos: [number, number, number], data: SerializedBrick }[] = [];
 
     constructor(id?: string,

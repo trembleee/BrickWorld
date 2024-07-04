@@ -9,6 +9,10 @@
             <v-btn outlined color="#00ccff" class="operators" @click="Redo">Redo</v-btn>
             <v-btn outlined color="#00ccff" class="operators" @click="Debug">Debug</v-btn>
             <v-btn outlined color="#00ccff" class="operators" @click="MintCurrentBrickSetToModel">Mint</v-btn>
+            <!-- <v-btn outlined color="#00ccff" class="operators" @click="getScreenShot">ScreenShot</v-btn> -->
+            <v-btn outlined color="#00ccff" class="operators" @click="check">Check</v-btn>
+            <!-- <img id="screen-shot" :src="screenShotURL" alt="screen shot" v-if="screenShotURL"> -->
+            <v-img id="screen-shot" :src="screenShotURL" alt="screen shot" aspect-ratio="1.7"></v-img>
             <PlacePanal v-if="placePaneVisible" class="color-picker"></PlacePanal>
         </div>
         <WebGLCanvas class="canvas" />
@@ -16,10 +20,10 @@
 </template>
 
 <script setup lang="ts">
-import { onBeforeMount, computed } from 'vue';
+import { onBeforeMount, computed, ref, Ref } from 'vue';
 import { builderStore } from '@/scripts/builder/BuilderStore';
 import { inputStore } from '@/scripts/builder/inputs/InputStore'
-// import { contractStore } from '@/scripts/Contracts/ContractsStore'
+import { contractStore } from '@/scripts/Contracts/ContractsStore'
 import { generateDefaultSet, deserializeSet } from "@/scripts/builder/brick/brickSetManager"
 import { logDebug } from "@/scripts/utils/Message"
 import { dispatchBuilderAction } from '@/scripts/builder/render/dispatchAction';
@@ -27,94 +31,42 @@ import { setupInputMap } from '@/scripts/builder/inputs/inputStates/SetupInputMa
 import { inputInitComplete } from '@/scripts/builder/inputs/InputLoading';
 import PlacePanal from "@/components/builder/PlacePanal.vue"
 import WebGLCanvas from '@/components/builder/WebGLCanvas.vue';
+import { S3 } from 'aws-sdk'
+import { canvasSetupComplete, canvasInstance, render } from '@/scripts/builder/Builder'
+import { getMaterialCost } from '@/scripts/builder/brick/BrickType'
+import { SerializedBrickSet } from '@/scripts/builder/brick/brickSet';
 // import { getSetObject } from '@/scripts/builder/render/runtime_rendering';
 
-const { currentSet, selectSet, resetBuilderState, undoState, redoState, debugState, saveState } = builderStore;
+const { currentSet, selectSet, resetBuilderState, undoState, redoState, getCurrenState, saveState, debugState } = builderStore;
 
 // here currentInput is just a normal const viarable, not a reactive, since it is a copy of the inputStore.currenInput
 const { switchToState } = inputStore;
 
-// const { InitSolidityContracts, modelContract } = contractStore;
+const { InitSolidityContracts, getOwningBricks, contractCall_Model, contractCall_Brick, getAccountAddress, modelContractAddress, isApprovedForAll } = contractStore;
 
-
-// //初始化合约调用相关
-// import { Contract, ethers } from 'ethers';
-// import brickABIJSON from '../ABIs/brickABI.json'
-// import modelABIJSON from '../ABIs/modelABI.json'
-// import marketABIJSON from '../ABIs/marketABI.json'
-
-// const openseaAPI = "bcee010a55b74f14ac1a3bbd8b9dd118"
-// const brickAddress = "0x8400431edd44ED24b1341024e1A5F7339554A13A"
-// const modelAddress = "0x35b637c929c88cd77ec8c53682bcfd309b7edcb9"
-// const marketAddress = "0x370297884a02dcf327020add676aec8a2f082999"
-// const brickABI = brickABIJSON
-// const modelABI = modelABIJSON
-// const marketABI = marketABIJSON
-// //获取provider,signer,可写合约contract
-// let signer
-// let provider
-// let brickContract
-// let modelContract
-// let marketContract
-// async function getInf() {
-//   if (window.ethereum == null) {
-//     console.log("MetaMask not installed; using read-only defaults")
-//     provider = ethers.getDefaultProvider()
-//   } else {
-//     provider = new ethers.BrowserProvider(window.ethereum)
-//     signer = await provider.getSigner()
-//   }
-//   brickContract = new Contract(brickAddress, brickABI, signer)
-//   modelContract = new Contract(modelAddress, modelABI, signer)
-//   marketContract = new Contract(marketAddress, marketABI, signer)
-// }
-// await getInf()
-
-// let bricks = []
-// let myAddress = ''
-
-// onMounted(async ()=>{
-
-// })
-
-// async function refresh(){
-//     bricks = []
-//     await getMyAddress()//先获取我的地址赋值给myAddress，后面获取brick要用
-//     await getBricks()
-// }
-
-// async function getMyAddress(){
-//     // 获取用户地址
-//     const accounts = await provider.listAccounts();
-//     myAddress = accounts[0].address; // 第一个地址即为当前用户的地址
-//     //console.log('当前用户地址:', address);
-//     return myAddress
-// }
-// async function getBricks(){
-//     const options = { method: 'GET', headers: { accept: 'application/json' } };
-
-//     //调用opensea api获取地址拥有的所有brick nft
-//     await fetch('https://testnets-api.opensea.io/api/v2/chain/sepolia/account/' + myAddress + '/nfts?collection=brick-3', options)
-//     .then(response => response.json())
-//     .then(async (response) => {
-//         response.nfts.forEach(element => {
-//             setBrick(element.identifier)//对每一个brick调用setbrick函数,获取稀有度加到数组中
-//         });
-//     })
-//     .catch(err => console.error(err));
-// }
-// async function setBrick(id){
-//     let rarity = await brickContract.getRarity(id)//获取稀有度
-//     let brick = {
-//         id: id,
-//         rarity: rarity
-//     }//创建brick
-//     bricks.push(brick)//加入数组中
-// }
 
 const placePaneVisible = computed(() => {
     return inputStore.currentInput === "place" ? true : false;
 });
+
+// upload off-chain data
+const s3 = new S3({
+    endpoint: "https://endpoint.4everland.co",
+    credentials: {
+        accessKeyId: "9GQN8TMC41HL887LLU4F",
+        secretAccessKey: "8kAjf+VheYGNubUKn1aonueE5FyPz0Agp96lBFyX"
+    },
+    region: "4EVERLAND",
+});
+
+// const my4EverlandAPIKey = "7842d9c80b17e8bb95a6b9d7f2b62b5c";
+const my4EverlandIPFSGateway = "dcc5a59850fff729ce0d49b9f55baaf2";
+const screenShotURL = ref(null as unknown as string);
+const brickSetDataURI = ref(null as unknown as string);
+const serializedBrickSetToUpload = ref(null as unknown as SerializedBrickSet);
+
+console.log(s3);
+
 
 async function initializeStartSet() {
     let set = undefined;
@@ -135,7 +87,7 @@ onBeforeMount(async () => {
     resetBuilderState();
     await inputInitComplete;
     await initializeStartSet(); // currentSet is setup
-    // await InitSolidityContracts(); // wait contract init
+    await InitSolidityContracts(); // wait contract init
     // It is then when currentSet local viarable in file runtime_rendering have a chance to be accessed
     // So maybe the currentSet local viarable can be replaced by currentSet setData?
 
@@ -157,13 +109,139 @@ const Redo = async () => {
     dispatchBuilderAction('select_set', currentSet.value);
 }
 
+const MintCurrentBrickSetToModel = async () => {
+    // console.log(owningBricks);
+    const brickToMintIds: number[] = []
+    const setInfo = getCurrenState();
+    const numToMint = setInfo.bricks.length;
+    for (let i = 0; i < numToMint; i++) {
+        if (setInfo.bricks[i].data.id) {
+            brickToMintIds.push(Number(setInfo.bricks[i].data.id))
+        }
+    }
+    await getScreenShot();
+    await uploadOffChainDataOfBrickSet();
+
+    if (brickSetDataURI.value) { // check and uploading are bith successful
+        console.log(brickSetDataURI.value);
+
+        for (const brick of serializedBrickSetToUpload.value.bricks) {
+            if (brick.data.id) {
+                brickToMintIds.push(Number(brick.data.id));
+            }
+            else {
+                console.error("Trying to mint model with brick with out id!!");
+            }
+
+            // contractCall_Brick("isApprovedForAll", getAccountAddress(), modelContractAddress)
+        }
+
+        if (await isApprovedForAll()) {
+            console.log(111);
+
+            await contractCall_Model("safeMint", getAccountAddress(), brickToMintIds, brickToMintIds.length, brickSetDataURI.value);
+        }
+        else if (await contractCall_Brick("setApprovalForAll", modelContractAddress, true)) {
+            await contractCall_Model("safeMint", getAccountAddress(), brickToMintIds, brickToMintIds.length, brickSetDataURI.value);
+        }
+    }
+    else {
+        console.log("Do not have valid off-chain data url, uploading might failed.");
+    }
+}
+
+const getScreenShot = async () => {
+    await canvasSetupComplete;
+    const canvas = canvasInstance.value;
+    const ctx = canvas.getContext('webgl2');
+    if (ctx) {
+        console.log(ctx);
+        await render();
+        screenShotURL.value = canvas.toDataURL('image/jpeg', 0.1);
+        console.log(screenShotURL.value);
+    }
+}
+
+const checkSufficientBrick = async (SetToUpload: Ref<SerializedBrickSet>): Promise<boolean> => {
+    // await refreshOwningBricks();
+    const OwningBricks = await getOwningBricks();
+    const owningBricksCopy: typeof OwningBricks = JSON.parse(JSON.stringify(OwningBricks));
+    console.log("Owning bricks: ", owningBricksCopy);
+    const setInfo = getCurrenState()?.copy();
+    if (!setInfo) return false;
+
+    for (const brick of setInfo.bricks) {
+        const mat = brick.data.material;
+        if (mat) {
+            const cost = getMaterialCost(mat);
+            let matchFound: boolean = false;
+            for (let i = cost; i <= 5; i++) {
+                if (owningBricksCopy[String(i)] && owningBricksCopy[String(i)].length) {
+                    console.log(owningBricksCopy[String(i)]);
+
+                    const brickToCost = owningBricksCopy[String(i)].pop();
+                    brick.data.id = brickToCost?.id;
+                    matchFound = true;
+                    break;
+                }
+            }
+            // insufficient rarity to pay the cost
+            if (!matchFound) {
+                return false;
+            }
+        }
+    }
+    SetToUpload.value = setInfo;
+    console.log("Check Result: ", setInfo);
+
+    return true;
+}
+
+const check = async () => {
+    console.log("Check Result: ", await checkSufficientBrick(serializedBrickSetToUpload));
+}
+
 const Debug = () => {
     debugState();
 }
 
-const MintCurrentBrickSetToModel = () => {
+const uploadOffChainDataOfBrickSet = async () => {
+    brickSetDataURI.value = null as unknown as string;
+    if (s3 && screenShotURL.value && currentSet.value) {
+        // successful check
+        if (await checkSufficientBrick(serializedBrickSetToUpload)) {
 
-}
+            console.log("Check success! You have enough brick to mint the model.");
+
+            // thumnail
+            serializedBrickSetToUpload.value.thumbnailPicture = screenShotURL.value;
+            const stringifiedInfo = JSON.stringify(serializedBrickSetToUpload.value);
+            // console.log(serializedBrickSetToUpload.value);
+            // console.log(stringifiedInfo);
+
+            const params = {
+                Bucket: "brick-world",
+                Key: "/models/" + currentSet.value.id,
+                ContentType: "application/json",
+                Body: stringifiedInfo,
+            }
+
+            // uploading
+            await s3.putObject(params).promise()
+                .then((data) => {
+                    console.log('Upload success', data)
+                    brickSetDataURI.value = "https://" + my4EverlandIPFSGateway + ".ipfs.4everland.link/ipfs/" + data.ETag;
+
+                })
+                .catch(err => {
+                    console.log(err)
+                });
+        } // successful check
+        else {
+            console.log("Check failed! You don not have enough brick to mint the model.");
+        }
+    }
+};
 
 </script>
 
@@ -186,10 +264,19 @@ const MintCurrentBrickSetToModel = () => {
         top: 20px;
         left: 20px;
     }
+
+    #screen-shot {
+        position: absolute;
+        top: 200px;
+        left: 20px;
+        width: 200px;
+        height: 200px;
+    }
 }
 
 .canvas {
     position: absolute;
+    /* visibility: hidden; */
     top: 0;
     left: 0;
     z-index: 0;

@@ -161,7 +161,6 @@ export const contractStore = (() => {
 
     async function isApprovedForAll(): Promise<boolean> {
         const tx = await brickContract.isApprovedForAll(getAccountAddress(), modelContractAddress);
-        console.log(tx);
         return tx;
     }
 

@@ -4,6 +4,14 @@ import { logDebug } from "@/scripts/utils/Message";
 import { hexUuid } from "./Uuid"
 import { Brick } from './brick';
 
+import { OakTreeModel } from '../conf/default';
+
+export function loadOakTree() {
+    const set = new BrickSet(OakTreeModel.id);
+    set.deserialize(OakTreeModel as SerializedBrickSet);
+    return set;
+}
+
 export function generateDefaultSet() {
     logDebug(('BUILDER - INITIALIZING DEFAULT SET'));
 

@@ -28,24 +28,24 @@ export class SerializedBrickSet {
         this.bricks = bricks || [];
     }
 
-    copy(): SerializedBrickSet {
-        const newObject = new SerializedBrickSet();
-        newObject.id = this.id;
-        newObject.name = this.name;
-        newObject.description = this.description;
-        newObject.regionSize = this.regionSize;
-        newObject.version = this.version;
+    // copy(): SerializedBrickSet {
+    //     const newObject = new SerializedBrickSet();
+    //     newObject.id = this.id;
+    //     newObject.name = this.name;
+    //     newObject.description = this.description;
+    //     newObject.regionSize = this.regionSize;
+    //     newObject.version = this.version;
 
-        const newBricks = [];
-        for (const brick of this.bricks) {
-            const newPos: [number, number, number] = [brick.pos[0], brick.pos[1], brick.pos[2]];
-            const newData: SerializedBrick = brick.data.copy();
-            const newBrick: { pos: [number, number, number], data: SerializedBrick } = { pos: newPos, data: newData };
-            newBricks.push(newBrick);
-        }
-        newObject.bricks = newBricks;
-        return newObject;
-    }
+    //     const newBricks = [];
+    //     for (const brick of this.bricks) {
+    //         const newPos: [number, number, number] = [brick.pos[0], brick.pos[1], brick.pos[2]];
+    //         const newData: SerializedBrick = JSON.parse(JSON.stringify(brick.data));
+    //         const newBrick: { pos: [number, number, number], data: SerializedBrick } = { pos: newPos, data: newData };
+    //         newBricks.push(newBrick);
+    //     }
+    //     newObject.bricks = newBricks;
+    //     return newObject;
+    // }
 }
 
 const REGION_SIZE = 100000;

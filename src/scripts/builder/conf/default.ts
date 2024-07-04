@@ -1,3 +1,7 @@
+import * as OakTree from '@/assets/jsonPrefabs/oakTree.json'
+
+export const OakTreeModel = OakTree;
+
 export const CONF = {
     theme: 'realms',
     brickMaterials: ['0x2'],

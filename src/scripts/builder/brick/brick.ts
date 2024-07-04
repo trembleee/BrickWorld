@@ -17,14 +17,14 @@ export class SerializedBrick {
         this.id = id;
     }
 
-    copy(): SerializedBrick {
-        const newObject = new SerializedBrick();
-        newObject.material = this.material;
-        newObject.color = this.color;
-        newObject.id = this.id;
-        newObject.rarity = this.rarity;
-        return newObject;
-    }
+    // copy(): SerializedBrick {
+    //     const newObject = new SerializedBrick();
+    //     newObject.material = this.material;
+    //     newObject.color = this.color;
+    //     newObject.id = this.id;
+    //     newObject.rarity = this.rarity;
+    //     return newObject;
+    // }
 }
 
 export class Brick {

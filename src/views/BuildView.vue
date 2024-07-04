@@ -7,10 +7,11 @@
             <v-btn outlined color="#00ccff" class="operators" @click="switchToState('erase')">Erase</v-btn>
             <v-btn outlined color="#00ccff" class="operators" @click="Undo">Undo</v-btn>
             <v-btn outlined color="#00ccff" class="operators" @click="Redo">Redo</v-btn>
-            <v-btn outlined color="#00ccff" class="operators" @click="Debug">Debug</v-btn>
+            <v-btn v-if="false" outlined color="#00ccff" class="operators" @click="Debug">Debug</v-btn>
             <v-btn outlined color="#00ccff" class="operators" @click="MintCurrentBrickSetToModel">Mint</v-btn>
             <!-- <v-btn outlined color="#00ccff" class="operators" @click="getScreenShot">ScreenShot</v-btn> -->
             <v-btn outlined color="#00ccff" class="operators" @click="check">Check</v-btn>
+            <v-btn outlined color="#00ccff" class="operators" @click="getBricksetJson">Get JSON</v-btn>
             <!-- <img id="screen-shot" :src="screenShotURL" alt="screen shot" v-if="screenShotURL"> -->
             <v-img id="screen-shot" :src="screenShotURL" alt="screen shot" aspect-ratio="1.7"></v-img>
             <PlacePanal v-if="placePaneVisible" class="color-picker"></PlacePanal>
@@ -24,7 +25,7 @@ import { onBeforeMount, computed, ref, Ref } from 'vue';
 import { builderStore } from '@/scripts/builder/BuilderStore';
 import { inputStore } from '@/scripts/builder/inputs/InputStore'
 import { contractStore } from '@/scripts/Contracts/ContractsStore'
-import { generateDefaultSet, deserializeSet } from "@/scripts/builder/brick/brickSetManager"
+import { generateDefaultSet, deserializeSet, loadOakTree } from "@/scripts/builder/brick/brickSetManager"
 import { logDebug } from "@/scripts/utils/Message"
 import { dispatchBuilderAction } from '@/scripts/builder/render/dispatchAction';
 import { setupInputMap } from '@/scripts/builder/inputs/inputStates/SetupInputMap';
@@ -71,7 +72,10 @@ console.log(s3);
 async function initializeStartSet() {
     let set = undefined;
     if (!currentSet.value) {
-        set = generateDefaultSet();
+        if (!(set = loadOakTree())) {
+            set = generateDefaultSet();
+        }
+
         if (set) // set current set 
             await selectSet(set);
     }
@@ -136,9 +140,8 @@ const MintCurrentBrickSetToModel = async () => {
             // contractCall_Brick("isApprovedForAll", getAccountAddress(), modelContractAddress)
         }
 
+        // call contracts
         if (await isApprovedForAll()) {
-            console.log(111);
-
             await contractCall_Model("safeMint", getAccountAddress(), brickToMintIds, brickToMintIds.length, brickSetDataURI.value);
         }
         else if (await contractCall_Brick("setApprovalForAll", modelContractAddress, true)) {
@@ -167,7 +170,7 @@ const checkSufficientBrick = async (SetToUpload: Ref<SerializedBrickSet>): Promi
     const OwningBricks = await getOwningBricks();
     const owningBricksCopy: typeof OwningBricks = JSON.parse(JSON.stringify(OwningBricks));
     console.log("Owning bricks: ", owningBricksCopy);
-    const setInfo = getCurrenState()?.copy();
+    const setInfo = JSON.parse(JSON.stringify(getCurrenState()));
     if (!setInfo) return false;
 
     for (const brick of setInfo.bricks) {
@@ -198,11 +201,24 @@ const checkSufficientBrick = async (SetToUpload: Ref<SerializedBrickSet>): Promi
 }
 
 const check = async () => {
+    const checkResult = await checkSufficientBrick(serializedBrickSetToUpload);
+    if (checkResult) {
+        alert("Congratulations! You have enough brick to mint the model!");
+    }
+    else {
+        alert("Sorry, You don't have enough brick to mint the model...")
+    }
     console.log("Check Result: ", await checkSufficientBrick(serializedBrickSetToUpload));
 }
 
 const Debug = () => {
     debugState();
+}
+
+const getBricksetJson = () => {
+    const info = JSON.parse(JSON.stringify(getCurrenState()));
+    const JSONInfo = JSON.stringify(info);
+    console.log(JSONInfo);
 }
 
 const uploadOffChainDataOfBrickSet = async () => {

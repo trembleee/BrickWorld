@@ -25,6 +25,7 @@ export const builderStore = (() => {
     const resetBuilderState = () => {
         logDebug('BUILDER - RESETTING STATE');
         _stateHistory.splice(0, _stateHistory.length); // clear history
+        currentStateIndex = -1;
         _currentSet.value = undefined as unknown as BrickSet;
     }
 
@@ -59,6 +60,9 @@ export const builderStore = (() => {
         console.log(currentStateIndex);
     }
 
+    const clearAll = () => {
+
+    }
 
     return {
         currentSet,

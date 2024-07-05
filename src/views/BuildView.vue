@@ -7,6 +7,7 @@
             <v-btn outlined color="#00ccff" class="operators" @click="switchToState('erase')">Erase</v-btn>
             <v-btn outlined color="#00ccff" class="operators" @click="Undo">Undo</v-btn>
             <v-btn outlined color="#00ccff" class="operators" @click="Redo">Redo</v-btn>
+            <v-btn outlined color="#00ccff" class="operators" @click="ClearAll">ClearAll</v-btn>
             <v-btn v-if="false" outlined color="#00ccff" class="operators" @click="Debug">Debug</v-btn>
             <v-btn outlined color="#00ccff" class="operators" @click="MintCurrentBrickSetToModel">Mint</v-btn>
             <!-- <v-btn outlined color="#00ccff" class="operators" @click="getScreenShot">ScreenShot</v-btn> -->
@@ -21,11 +22,11 @@
 </template>
 
 <script setup lang="ts">
-import { onBeforeMount, computed, ref, Ref } from 'vue';
+import { onBeforeMount, onBeforeUnmount, computed, ref, Ref } from 'vue';
 import { builderStore } from '@/scripts/builder/BuilderStore';
 import { inputStore } from '@/scripts/builder/inputs/InputStore'
 import { contractStore } from '@/scripts/Contracts/ContractsStore'
-import { generateDefaultSet, deserializeSet, loadOakTree, loadEmptySet } from "@/scripts/builder/brick/brickSetManager"
+import { generateDefaultSet, deserializeSet, loadOakTree, generateEmptySetById } from "@/scripts/builder/brick/brickSetManager"
 import { logDebug } from "@/scripts/utils/Message"
 import { dispatchBuilderAction } from '@/scripts/builder/render/dispatchAction';
 import { setupInputMap } from '@/scripts/builder/inputs/inputStates/SetupInputMap';
@@ -76,7 +77,7 @@ async function initializeStartSet() {
             set = generateDefaultSet();
         }
 
-        set = loadEmptySet();
+        // set = loadEmptySet();
 
         if (set) // set current set 
             await selectSet(set);
@@ -101,6 +102,10 @@ onBeforeMount(async () => {
     dispatchBuilderAction('select_set', currentSet.value); // generate the voxelWorld with its brick 
 });
 
+onBeforeUnmount(async () => {
+    // currentSet.value = null as unknown as BrickSet
+});
+
 const Undo = async () => {
     const undoInfo = undoState();
     const newSet = deserializeSet(undoInfo);
@@ -112,6 +117,14 @@ const Redo = async () => {
     const redoInfo = redoState();
     const newSet = deserializeSet(redoInfo);
     await selectSet(newSet);
+    dispatchBuilderAction('select_set', currentSet.value);
+}
+
+const ClearAll = async () => {
+    const info = getCurrenState();
+    const newSet = generateEmptySetById(info.id as string);
+    await selectSet(newSet);
+    saveState(newSet.serialize());
     dispatchBuilderAction('select_set', currentSet.value);
 }
 

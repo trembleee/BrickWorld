@@ -35,3 +35,8 @@ export function deserializeSet(info: SerializedBrickSet) {
     set.deserialize(info);
     return set;
 }
+
+export function generateEmptySetById(id: string) {
+    const set = new BrickSet(id);
+    return set;
+}

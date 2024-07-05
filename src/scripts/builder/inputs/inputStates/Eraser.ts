@@ -1,6 +1,5 @@
 import { MouseInputState } from './BuilderInputState';
 
-import { THREE } from '@/scripts/builder/render/three';
 import { builderStore } from '@/scripts/builder/BuilderStore';
 import { PlaceOrRemoveBriqs } from '@/scripts/builder/render/BuilderActions';
 

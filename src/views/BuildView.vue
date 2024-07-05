@@ -295,7 +295,7 @@ const uploadOffChainDataOfBrickSet = async () => {
 
     .color-picker {
         position: absolute;
-        top: 20px;
+        top: 60px;
         left: 20px;
     }
 

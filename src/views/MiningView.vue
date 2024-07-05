@@ -1,31 +1,17 @@
 <template>
-  <div class="mining">
-    <v-btn
-      outlined
-      color="#00ccff"
-      class="mint"
-      @click="getBrickNum()"
-    >
-      获取用户积木数
-    </v-btn>
-    <v-btn
-      outlined
-      color="#00ccff"
-      class="mint"
-      @click="mint()"
-    >
-      挖取一个积木
-    </v-btn>
-        <v-btn
-      outlined
-      color="#00ccff"
-      class="mint"
-      @click="test()"
-    >
-      testbutton
-    </v-btn>
-    <img class="test-img" :src="imgUrl" alt="no image now">
-  </div>
+  <v-app>
+    <div class="mining">
+      <img class="test-img" :src="imgUrl" alt="铸造积木后查看">
+      <v-btn
+        outlined
+        color="#00ccff"
+        class="mint"
+        @click="mint()"
+      >
+        挖取一个积木
+      </v-btn>
+    </div>
+  </v-app>
 </template>
 
 <script>
@@ -79,16 +65,6 @@ export default {
 
     },
 
-    async test(){
-      // this.searchTokenIdByMintHash('0xe861d124441b285a9c5d558fc05a530c1f2636c3a6be2833d9bbc35f61999f0c').then(res=>{
-      //   console.log(res)
-      // })
-
-      // let brickURI = 'ipfs://bafkreiem3hf4zw4fefa7unoifypb3py4y2mymrcznwckgecx7yh3jendne'
-      // await this.getIPFSJSON(brickURI)
-      
-    },
-
     async searchTokenIdByMintHash(hash){
       //mint的哈希查找tokenId
       let receipt;
@@ -108,13 +84,44 @@ export default {
     async mint(){
       await this.getMyAddress()
       const tx=await brickContract.mint(this.myAddress)
-      await tx.wait()
+      const receipt = await tx.wait()
       console.log(tx)
-      console.log(tx.hash)
+
+      if (receipt.status === 1) {
+          console.log('Transaction successful:', receipt);
+          alert('成功！')
+      } else {
+          console.error('Transaction failed:', receipt);
+      }
 
       let brickId = await this.searchTokenIdByMintHash(tx.hash)
-      let brickURI = await this.getURIById(brickId)
-      await this.getIPFSJSON(brickURI)
+      let r = await brickContract.getRarity(brickId)
+      r = Number(r)
+      let newUrl
+      switch (r) {
+          case 1:
+          newUrl = 'https://696b9fbef8ec8b266064095c69f2191c.ipfs.4everland.link/ipfs/bafybeiesu34t76ciq6t22taq4rfgewkfpe76iw4ofvsq634q6uneqvl5qy'
+          break;
+          case 2:
+          newUrl = 'https://696b9fbef8ec8b266064095c69f2191c.ipfs.4everland.link/ipfs/bafybeidvvyquae5k6ge7b4a4tpn3y3gwvuyqyo73nbuo5f65ya76ncukxi'
+          break;
+          case 3:
+          newUrl = 'https://696b9fbef8ec8b266064095c69f2191c.ipfs.4everland.link/ipfs/bafybeidntv3cewlapy5npy6uryikjcmpyq4wyi22r5vp5iu4cwg4rj3nrq'
+          break;
+          case 4:
+          newUrl = 'https://696b9fbef8ec8b266064095c69f2191c.ipfs.4everland.link/ipfs/bafybeibqrapbkswzxfydgmlgci5jlho3nvqezmiygptvlbzzhi4euourze'
+          break;
+          case 5:
+          newUrl = 'https://696b9fbef8ec8b266064095c69f2191c.ipfs.4everland.link/ipfs/bafybeihvlp3wb4lhhtqj2yllmxgpf6l3vbrfhbqnxczoqvpqnkpewpyfuy'
+          break;
+          default:
+          break;
+      }
+      console.log('r img',r,newUrl)
+      this.imgUrl = newUrl
+
+      // let brickURI = await this.getURIById(brickId)
+      // await this.getIPFSJSON(brickURI)
       
     },
 
@@ -153,7 +160,15 @@ export default {
   margin: 15px;
 }
 .test-img{
-  width: 100px;
-  height: 150px;
+  width: 150px;
+  height: 200px;
+}
+.mining {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh; /* 高度设为视口高度，确保垂直居中 */
+  text-align: center;
 }
 </style>

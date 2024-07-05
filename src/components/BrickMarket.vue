@@ -17,7 +17,6 @@
                         ></v-checkbox>
                         <v-btn style="margin-right: 5px" color="blue" @click="selectedNumbers = [1,2,3,4,5]">全选</v-btn>
                         <v-btn color="red" @click="selectedNumbers = [];">清除</v-btn>
-                        <span>{{ selectedNumbers }}</span>
                     </div>
                 </v-col>
                 <!-- 右侧栏，占80% -->

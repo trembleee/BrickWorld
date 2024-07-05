@@ -12,6 +12,12 @@ export function loadOakTree() {
     return set;
 }
 
+export function loadEmptySet() {
+    const set = new BrickSet(hexUuid());
+    set.name = 'Empty Set';
+    return set;
+}
+
 export function generateDefaultSet() {
     logDebug(('BUILDER - INITIALIZING DEFAULT SET'));
 

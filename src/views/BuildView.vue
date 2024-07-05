@@ -25,7 +25,7 @@ import { onBeforeMount, computed, ref, Ref } from 'vue';
 import { builderStore } from '@/scripts/builder/BuilderStore';
 import { inputStore } from '@/scripts/builder/inputs/InputStore'
 import { contractStore } from '@/scripts/Contracts/ContractsStore'
-import { generateDefaultSet, deserializeSet, loadOakTree } from "@/scripts/builder/brick/brickSetManager"
+import { generateDefaultSet, deserializeSet, loadOakTree, loadEmptySet } from "@/scripts/builder/brick/brickSetManager"
 import { logDebug } from "@/scripts/utils/Message"
 import { dispatchBuilderAction } from '@/scripts/builder/render/dispatchAction';
 import { setupInputMap } from '@/scripts/builder/inputs/inputStates/SetupInputMap';
@@ -75,6 +75,8 @@ async function initializeStartSet() {
         if (!(set = loadOakTree())) {
             set = generateDefaultSet();
         }
+
+        set = loadEmptySet();
 
         if (set) // set current set 
             await selectSet(set);
@@ -129,6 +131,7 @@ const MintCurrentBrickSetToModel = async () => {
     if (brickSetDataURI.value) { // check and uploading are bith successful
         console.log(brickSetDataURI.value);
 
+
         for (const brick of serializedBrickSetToUpload.value.bricks) {
             if (brick.data.id) {
                 brickToMintIds.push(Number(brick.data.id));
@@ -170,7 +173,8 @@ const checkSufficientBrick = async (SetToUpload: Ref<SerializedBrickSet>): Promi
     const OwningBricks = await getOwningBricks();
     const owningBricksCopy: typeof OwningBricks = JSON.parse(JSON.stringify(OwningBricks));
     console.log("Owning bricks: ", owningBricksCopy);
-    const setInfo = JSON.parse(JSON.stringify(getCurrenState()));
+    const currentState = getCurrenState();
+    const setInfo: typeof currentState = JSON.parse(JSON.stringify(currentState));
     if (!setInfo) return false;
 
     for (const brick of setInfo.bricks) {
@@ -184,6 +188,7 @@ const checkSufficientBrick = async (SetToUpload: Ref<SerializedBrickSet>): Promi
 
                     const brickToCost = owningBricksCopy[String(i)].pop();
                     brick.data.id = brickToCost?.id;
+                    brick.data.rarity = Number(brickToCost?.rarity);
                     matchFound = true;
                     break;
                 }
@@ -246,7 +251,7 @@ const uploadOffChainDataOfBrickSet = async () => {
             await s3.putObject(params).promise()
                 .then((data) => {
                     console.log('Upload success', data)
-                    brickSetDataURI.value = "https://" + my4EverlandIPFSGateway + ".ipfs.4everland.link/ipfs/" + data.ETag;
+                    brickSetDataURI.value = "https://" + my4EverlandIPFSGateway + ".ipfs.4everland.link/ipfs/" + data.ETag?.substring(1, data.ETag.length - 1);
 
                 })
                 .catch(err => {

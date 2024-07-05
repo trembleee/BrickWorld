@@ -138,7 +138,7 @@ export const contractStore = (() => {
 
         const data = JSON.stringify(owningBricks);
 
-        const result = JSON.parse(data);
+        const result: typeof owningBricks = JSON.parse(data);
 
         return result;
     }

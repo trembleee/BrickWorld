@@ -7,16 +7,12 @@
 
 <script setup lang="ts">
 import { setupCanvas, render, unmount, orbitControls } from '@/scripts/builder/Builder';
-// import { THREE } from '@/scripts/builder/render/three';
-// import { logDebug } from '@/scripts/utils/Message';
 import { onBeforeUnmount, onMounted, ref, } from 'vue';
 import { builderInputFsm } from '@/scripts/builder/inputs/BuilderInputs';
 import { inputStore } from '@/scripts/builder/inputs/InputStore';
 
 const setup = ref(false);
 const canvas = ref(null as unknown as HTMLCanvasElement);
-// const sceneObj: THREE.Scene = scene;
-// logDebug(sceneObj);
 
 onMounted(async () => {
     // setup Canvas
@@ -28,12 +24,6 @@ onMounted(async () => {
         canvas.value, orbitControls.controls, inputStore
     );
     setup.value = true;
-    // watchEffect(() => {
-    //     console.log("Client Width: " + canvas.value.clientWidth);
-    //     console.log("Client Height: " + canvas.value.clientHeight);
-    //     console.log("Window innerWidth: " + window.innerWidth);
-    //     console.log("Window innerHeight: " + window.innerHeight);
-    // })
 
     frame();
 });

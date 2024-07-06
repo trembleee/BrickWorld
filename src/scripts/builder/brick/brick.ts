@@ -83,15 +83,6 @@ export class Brick {
         return this;
     }
 
-    // // Legacy deserializer to parse old sets.
-    // deserializeV0(data: any) {
-    //     this.material = '0x' + data.material;
-    //     this.color = data.color;
-    //     if (data.briq)
-    //         this.legacy_id = data.briq;
-    //     return this;
-    // }
-
     clone(): Brick {
         const ret = new Brick(this.material, this.color);
         ret.set = this.set;

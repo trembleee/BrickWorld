@@ -166,39 +166,6 @@ export class BrickSet {
         return this.bricks.get(regionId)!.get(cellId);
     }
 
-    // _swapBrick(pos: [number, number, number], brick: Brick) {
-    //     const [regionId, cellId] = this.computeIDs(...pos);
-    //     const og = this.bricks.get(regionId)?.get(cellId);
-    //     if (!og)
-    //         throw new Error(`Could not find original brick at ${this.to3DPos(regionId, cellId)}`);
-    //     this.bricks.get(regionId)?.set(cellId, brick);
-    //     brick.position = pos;
-    //     og.position = undefined;
-    //     this.bricks_ += 1;
-    //     dispatchBuilderAction('place_brick', { set: this.id, brick: brick.serialize(), position: pos });
-    //     if (og.getMaterial() === brick.getMaterial())
-    //         return;
-    //     --this.usedByMaterial[og.getMaterial()];
-    //     ++this.usedByMaterial[brick.getMaterial()];
-    //     this.usedByMaterial_ += 1;
-    // }
-
-    // modifyBrick(x: number, y: number, z: number, data: any) {
-    //     const cell = this.getAt(x, y, z);
-    //     if (!cell)
-    //         throw new Error(`No cell at position ${x}, ${y}, ${z}`);
-    //     if (data.color)
-    //         cell.color = data.color;
-    //     if (data.material) {
-    //         --this.usedByMaterial[cell.material];
-    //         ++this.usedByMaterial[data.material];
-    //         cell.material = data.material;
-    //     }
-    //     this.bricks_ += 1;
-    //     dispatchBuilderAction('remove_brick', { set: this.id, position: [x, y, z] });
-    //     dispatchBuilderAction('place_brick', { set: this.id, brick: cell.serialize(), position: [x, y, z] });
-    // }
-
     placeOrRemoveBrick(x: number, y: number, z: number, brick?: Brick): boolean {
         if (brick) {
             // logDebug("BrickSet - placing a brick.");
@@ -258,34 +225,6 @@ export class BrickSet {
         return true;
     }
 
-    // moveBricks(x: number, y: number, z: number, bricks: Brick[]) {
-    //     // Not the best algo I think but it's OK.
-    //     this.forEach((brick, pos) => {
-    //         brick._ex_pos = brick.position!.slice();
-    //     });
-    //     bricks.forEach((brick) => {
-    //         brick.position![0] += x;
-    //         brick.position![1] += y;
-    //         brick.position![2] += z;
-    //     });
-    //     const ret = new Map();
-    //     this.forEach((brick) => {
-    //         const [regionId, cellId] = this.computeIDs(brick.position[0], brick.position[1], brick.position[2]);
-    //         if (!ret.has(regionId))
-    //             ret.set(regionId, new Map());
-    //         if (ret.get(regionId).get(cellId)) {
-    //             this.forEach((brick, pos) => {
-    //                 brick.position = brick._ex_pos;
-    //             });
-    //             this.bricks_ += 1;
-    //             throw new Error('brick already placed on cell');
-    //         }
-    //         ret.get(regionId).set(cellId, brick);
-    //     });
-    //     this.bricks = markRaw(ret);
-    //     this.bricks_ += 1;
-    // }
-
     computeRegionId(x: number, y: number, z: number) {
         return (
             Math.floor(x / this.regionSize) +
@@ -331,25 +270,4 @@ export class BrickSet {
         const cx = cellId - cz * this.regionSize * this.regionSize - cy * this.regionSize;
         return [mx * this.regionSize + cx, my * this.regionSize + cy, mz * this.regionSize + cz];
     }
-
-    // swapForRealBricks(chainBricks: ChainBricks) {
-    //     const usageByMaterial = {} as { [material: string]: { ft_balance: number; nft_ids: string[] } };
-    //     const positions = [] as any[];
-    //     this.forEach((cell, pos) => {
-    //         if (!usageByMaterial[cell.material])
-    //             usageByMaterial[cell.material] = { ft_balance: 0, nft_ids: [] };
-    //         if (cell.id)
-    //             usageByMaterial[cell.material].nft_ids.push(cell.id);
-    //         else
-    //             ++usageByMaterial[cell.material].ft_balance;
-    //         positions.push(pos);
-    //     });
-    //     const swaps = chainBricks.findRealBricks(usageByMaterial);
-    //     for (let i = 0; i < swaps.length; ++i) {
-    //         const nft = swaps[i];
-    //         this._swapBrick(positions[i], nft);
-    //         if (!swaps.length)
-    //             return;
-    //     }
-    // }
 }

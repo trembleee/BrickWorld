@@ -16,18 +16,10 @@ const { currentSet } = builderStore;
 
 export class PlacerInput extends MouseInputState {
     onEnter() {
-        // getPreviewCube().visible = false;
-        // getPreviewCube().scale.set(1, 1, 1);
-
-        // this.grid = new ShaderGrid();
-        // this.grid.generate();
-        // this.grid.grid.visible = false;
-        // underlayObjects.add(this.grid.grid);
     }
 
     onExit() {
-        // underlayObjects.remove(this.grid.grid);
-        // getPreviewCube().visible = false;
+
     }
 
     // Overloaded - we want diagonal placement.
@@ -69,16 +61,6 @@ export class PlacerInput extends MouseInputState {
         const pos = this.getIntersectionPos(this.curX, this.curY);
         if (!pos)
             return;
-        // getPreviewCube().position.set(Math.floor(pos[0]) + 0.5, Math.floor(pos[1]) + 0.5, Math.floor(pos[2]) + 0.5);
-        // this.grid.place(pos[0], 0, pos[2]);
-        // if (this.isWithinBounds(...pos)) {
-        //     getPreviewCube().visible = true;
-        //     (getPreviewCube().material as THREE.MeshPhongMaterial).color = new THREE.Color(inputStore.currentColor);
-        //     this.grid.grid.visible = true;
-        // } else {
-        //     getPreviewCube().visible = false;
-        //     this.grid.grid.visible = false;
-        // }
     }
 
     async onPointerDown(event: PointerEvent) {

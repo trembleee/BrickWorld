@@ -1,13 +1,5 @@
 <template>
     <div>
-        <!-- <div class="color-display" :style="{ backgroundColor: selectedColor }"></div> -->
-        <!-- <select v-model="selectedMaterial">
-            <option class="items" v-for="(value, key, index) in BrickMaterialData" :value="key" :key="index">{{ value.name +
-                " | Cost: " +
-                value.cost }}
-                <v-img :src="value.icon"></v-img>
-            </option>
-        </select> -->
         <v-select v-model="selectedMaterial" :items="convertedData" item-value="key" item-text="name" return-object
             label="Select Material" dense>
             <template v-slot:item="{ item }">
@@ -39,7 +31,6 @@ watchEffect(() => {
 
 watchEffect(() => {
     inputStore.currentMaterial = selectedMaterial.value?.key;
-    // logDebug("InputStore - Material changed to:", inputStore.currentMaterial);
     console.log("InputStore - Material changed to:", inputStore.currentMaterial);
 })
 

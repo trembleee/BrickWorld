@@ -23,14 +23,6 @@ export class EraserInput extends MouseInputState {
         const pos = this.getIntersectionPos(this.curX, this.curY, true);
         if (!pos)
             return;
-
-        // If the position is on the ground the intersection didn't return a cell.
-        // if (pos[1] < 0)
-        //     getPreviewCube().visible = false;
-        // else {
-        //     getPreviewCube().visible = true;
-        //     getPreviewCube().position.set(Math.floor(pos[0]) + 0.5, Math.floor(pos[1]) + 0.5, Math.floor(pos[2]) + 0.5);
-        // }
     }
 
     async onPointerDown(event: PointerEvent) {
